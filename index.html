@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atlanta FOIA Request Tool</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue: #003087;
+      --gold: #C8A84B;
+      --light: #f5f7fa;
+      --border: #d1d9e0;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --success: #16a34a;
+      --danger: #dc2626;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header .seal {
+      width: 52px; height: 52px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 1.1rem; color: var(--blue);
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+    header p  { font-size: .85rem; opacity: .8; margin-top: .15rem; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+    }
+    @media (max-width: 800px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .card h2 {
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--blue);
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: .5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Form ── */
+    label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .3rem; }
+    input, select, textarea {
+      width: 100%; padding: .55rem .75rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: .9rem; font-family: inherit;
+      transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,48,135,.12);
+    }
+    textarea { resize: vertical; min-height: 110px; }
+    .form-row { margin-bottom: 1rem; }
+    .form-row small { color: var(--muted); font-size: .78rem; margin-top: .25rem; display: block; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem 1.25rem; border-radius: 6px;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
+      border: none; transition: opacity .15s, transform .1s;
+    }
+    .btn:hover  { opacity: .88; }
+    .btn:active { transform: scale(.97); }
+    .btn-primary  { background: var(--blue); color: #fff; }
+    .btn-gold     { background: var(--gold); color: var(--blue); }
+    .btn-outline  { background: #fff; color: var(--blue); border: 1px solid var(--blue); }
+    .btn-danger   { background: var(--danger); color: #fff; }
+    .btn-sm       { padding: .35rem .75rem; font-size: .8rem; }
+    .btn-row      { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    /* ── Preview ── */
+    #preview-box {
+      background: #fafafa;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-size: .85rem;
+      white-space: pre-wrap;
+      font-family: "Courier New", monospace;
+      line-height: 1.55;
+      max-height: 340px;
+      overflow-y: auto;
+      color: #333;
+    }
+    #preview-box.empty { color: var(--muted); font-style: italic; font-family: inherit; }
+
+    /* ── Tracker ── */
+    #request-list { display: flex; flex-direction: column; gap: .75rem; }
+    .req-item {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      font-size: .85rem;
+    }
+    .req-item.status-submitted  { border-left-color: var(--blue); }
+    .req-item.status-pending    { border-left-color: var(--gold); }
+    .req-item.status-received   { border-left-color: var(--success); }
+    .req-item.status-denied     { border-left-color: var(--danger); }
+    .req-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .req-item-title  { font-weight: 700; color: var(--blue); }
+    .req-badge {
+      font-size: .72rem; font-weight: 700; padding: .15rem .55rem;
+      border-radius: 99px; white-space: nowrap;
+      text-transform: uppercase; letter-spacing: .03em;
+    }
+    .badge-submitted { background: #dbeafe; color: #1d4ed8; }
+    .badge-pending   { background: #fef3c7; color: #92400e; }
+    .badge-received  { background: #dcfce7; color: #166534; }
+    .badge-denied    { background: #fee2e2; color: #991b1b; }
+    .req-meta { color: var(--muted); margin-top: .3rem; }
+    .req-actions { display: flex; gap: .4rem; margin-top: .6rem; }
+
+    /* ── Info panel ── */
+    .info-list { list-style: none; }
+    .info-list li {
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .875rem;
+      display: flex; gap: .5rem;
+    }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li::before { content: "•"; color: var(--gold); font-weight: 900; flex-shrink: 0; }
+    .info-list a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .info-list a:hover { text-decoration: underline; }
+
+    .deadline-note {
+      background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 6px; padding: .75rem 1rem;
+      font-size: .82rem; color: #78350f; margin-top: 1rem;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--blue); color: #fff;
+      padding: .7rem 1.2rem; border-radius: 8px;
+      font-size: .875rem; font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,.2);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; }
+
+    .empty-state { text-align: center; color: var(--muted); padding: 1.5rem 0; font-size: .875rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="seal">ATL</div>
+  <div>
+    <h1>Atlanta Open Records Request Tool</h1>
+    <p>Georgia Open Records Act (O.C.G.A. § 50-18-70 et seq.)</p>
+  </div>
+</header>
+
+<main>
+  <!-- Left column -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+    <!-- Draft form -->
+    <div class="card">
+      <h2>Draft a New Request</h2>
+
+      <div class="form-row">
+        <label for="your-name">Your Full Name *</label>
+        <input type="text" id="your-name" placeholder="Jane Smith" />
+      </div>
+
+      <div class="form-row">
+        <label for="your-email">Your Email Address *</label>
+        <input type="email" id="your-email" placeholder="jane@example.com" />
+      </div>
+
+      <div class="form-row">
+        <label for="your-phone">Phone (optional)</label>
+        <input type="tel" id="your-phone" placeholder="(404) 555-0100" />
+      </div>
+
+      <div class="form-row">
+        <label for="department">City Department</label>
+        <select id="department">
+          <option value="General Counsel / Department of Law">General Counsel / Department of Law</option>
+          <option value="Department of Procurement">Department of Procurement</option>
+          <option value="Atlanta Police Department">Atlanta Police Department</option>
+          <option value="Atlanta Fire Rescue Department">Atlanta Fire Rescue Department</option>
+          <option value="Department of Public Works">Department of Public Works</option>
+          <option value="Department of Planning">Department of Planning</option>
+          <option value="Department of Finance">Department of Finance</option>
+          <option value="Mayor's Office">Mayor's Office</option>
+          <option value="City Council">City Council</option>
+          <option value="Department of Parks & Recreation">Department of Parks &amp; Recreation</option>
+          <option value="Atlanta Watershed Management">Atlanta Watershed Management</option>
+          <option value="Other / Unknown">Other / Unknown</option>
+        </select>
+        <small>Select the department that likely holds the records you need.</small>
+      </div>
+
+      <div class="form-row">
+        <label for="records-desc">Description of Records Requested *</label>
+        <textarea id="records-desc" placeholder="Describe the records as specifically as possible — include date ranges, document types, names of parties involved, case/permit numbers, etc."></textarea>
+        <small>Tip: Be specific. The more precise your request, the faster agencies can locate records.</small>
+      </div>
+
+      <div class="form-row">
+        <label for="date-range">Date Range of Records</label>
+        <input type="text" id="date-range" placeholder="e.g., January 1, 2023 – December 31, 2024" />
+      </div>
+
+      <div class="form-row">
+        <label for="format-pref">Preferred Format</label>
+        <select id="format-pref">
+          <option value="electronic (PDF or native format)">Electronic — PDF or native format</option>
+          <option value="electronic (CSV/spreadsheet)">Electronic — CSV / spreadsheet</option>
+          <option value="paper copies">Paper copies</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="fee-waiver">Fee Waiver Justification (optional)</label>
+        <input type="text" id="fee-waiver" placeholder="e.g., I am a journalist; disclosure is in the public interest" />
+        <small>Under Georgia law the agency may charge for copies. Provide a reason to request waiver.</small>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generateLetter()">Generate Letter</button>
+        <button class="btn btn-outline" onclick="clearForm()">Clear Form</button>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="card">
+      <h2>Request Letter Preview</h2>
+      <div id="preview-box" class="empty">Fill in the form above and click "Generate Letter" to preview your request.</div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="copyLetter()">Copy Letter</button>
+        <a class="btn btn-primary" href="https://foia.atlantaga.gov/" target="_blank" rel="noopener">
+          Submit at foia.atlantaga.gov ↗
+        </a>
+        <button class="btn btn-outline" onclick="saveRequest()">Save to Tracker</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right column -->
+  <div style="display:flex; flex-direction:column; gap:1.5rem;">
+
+    <!-- Tracker -->
+    <div class="card">
+      <h2>My Requests</h2>
+      <div id="request-list">
+        <div class="empty-state">No saved requests yet.</div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="card">
+      <h2>Georgia Open Records — Key Facts</h2>
+      <ul class="info-list">
+        <li>Agencies must <strong>acknowledge</strong> requests within <strong>3 business days</strong>.</li>
+        <li>Records must be produced within a <strong>reasonable time</strong> (typically cited as ~3 business days for simple requests).</li>
+        <li>Requesters do <strong>not</strong> need to state a reason for their request.</li>
+        <li>Some records are exempt (e.g., ongoing investigations, personal medical info, trade secrets).</li>
+        <li>Submit online: <a href="https://foia.atlantaga.gov/" target="_blank" rel="noopener">foia.atlantaga.gov</a></li>
+        <li>Procurement records: <a href="mailto:openrecords-procurement@atlantaga.gov">openrecords-procurement@atlantaga.gov</a></li>
+        <li>General info: <a href="https://www.atlantaga.gov/i-want-to/request-open-records" target="_blank" rel="noopener">atlantaga.gov open records page</a></li>
+        <li>Georgia AG guide: <a href="https://law.georgia.gov/key-issues/open-government/how-make-open-records-request" target="_blank" rel="noopener">law.georgia.gov</a></li>
+      </ul>
+
+      <div class="deadline-note">
+        <strong>Response deadline reminder:</strong> After submitting, note the date. If you haven't heard back in 3 business days, follow up with the department's records custodian.
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  function today() {
+    return new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2800);
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+
+  // ── Generate letter ────────────────────────────────────────────────────────
+
+  function generateLetter() {
+    const name    = val("your-name");
+    const email   = val("your-email");
+    const phone   = val("your-phone");
+    const dept    = val("department");
+    const desc    = val("records-desc");
+    const dates   = val("date-range");
+    const format  = val("format-pref");
+    const waiver  = val("fee-waiver");
+
+    if (!name || !email || !desc) {
+      showToast("Please fill in Name, Email, and Records Description.");
+      return;
+    }
+
+    const phoneLine = phone ? `\nPhone: ${phone}` : "";
+    const datesLine = dates ? `\nDate range of records: ${dates}` : "";
+    const waiverPara = waiver
+      ? `\nI respectfully request a waiver of any fees associated with this request. ${waiver}. Disclosure of these records serves the public interest.\n`
+      : "";
+
+    const letter = `${today()}
+
+Open Records Custodian
+${dept}
+City of Atlanta, Georgia
+
+RE: Open Records Request Pursuant to O.C.G.A. § 50-18-70 et seq.
+
+Dear Open Records Custodian:
+
+Pursuant to the Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq., I hereby request access to and copies of the following public records maintained by the ${dept}:
+
+${desc}${datesLine}
+
+I request that responsive records be produced in ${format}.
+${waiverPara}
+If any portion of this request is denied, please provide a written explanation citing the specific statutory exemption(s) relied upon and redact only the exempt portions rather than withholding entire documents.
+
+Under O.C.G.A. § 50-18-72, if some records are exempt but others are not, the non-exempt records must be provided. Please also confirm receipt of this request within three (3) business days as required by Georgia law.
+
+If you have any questions or require clarification, please contact me at the information below.
+
+Thank you for your prompt attention to this matter.
+
+Sincerely,
+
+${name}
+Email: ${email}${phoneLine}`;
+
+    const box = document.getElementById("preview-box");
+    box.textContent = letter;
+    box.classList.remove("empty");
+    box.dataset.letter = letter;
+  }
+
+  // ── Copy ───────────────────────────────────────────────────────────────────
+
+  function copyLetter() {
+    const box = document.getElementById("preview-box");
+    const text = box.dataset.letter || box.textContent;
+    if (!text || box.classList.contains("empty")) {
+      showToast("Generate a letter first.");
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => showToast("Letter copied to clipboard!"));
+  }
+
+  // ── Save / tracker ─────────────────────────────────────────────────────────
+
+  function loadRequests() {
+    try { return JSON.parse(localStorage.getItem("atl_foia_requests") || "[]"); }
+    catch { return []; }
+  }
+  function saveRequests(arr) {
+    localStorage.setItem("atl_foia_requests", JSON.stringify(arr));
+  }
+
+  function saveRequest() {
+    const name   = val("your-name");
+    const dept   = val("department");
+    const desc   = val("records-desc");
+    const letter = document.getElementById("preview-box").dataset.letter;
+
+    if (!name || !desc) { showToast("Fill in Name and Description first."); return; }
+    if (!letter) { showToast("Generate the letter before saving."); return; }
+
+    const requests = loadRequests();
+    requests.unshift({
+      id:     Date.now(),
+      name,
+      dept,
+      desc:   desc.substring(0, 120) + (desc.length > 120 ? "…" : ""),
+      date:   today(),
+      status: "submitted",
+      letter
+    });
+    saveRequests(requests);
+    renderTracker();
+    showToast("Request saved to tracker.");
+  }
+
+  function deleteRequest(id) {
+    if (!confirm("Delete this request from your tracker?")) return;
+    saveRequests(loadRequests().filter(r => r.id !== id));
+    renderTracker();
+  }
+
+  function updateStatus(id, status) {
+    const requests = loadRequests().map(r => r.id === id ? { ...r, status } : r);
+    saveRequests(requests);
+    renderTracker();
+  }
+
+  function viewLetter(id) {
+    const r = loadRequests().find(r => r.id === id);
+    if (!r) return;
+    const box = document.getElementById("preview-box");
+    box.textContent = r.letter;
+    box.classList.remove("empty");
+    box.dataset.letter = r.letter;
+    box.scrollIntoView({ behavior: "smooth" });
+  }
+
+  const BADGE = {
+    submitted: "badge-submitted",
+    pending:   "badge-pending",
+    received:  "badge-received",
+    denied:    "badge-denied",
+  };
+  const LABEL = { submitted: "Submitted", pending: "Pending", received: "Received", denied: "Denied" };
+
+  function renderTracker() {
+    const requests = loadRequests();
+    const list = document.getElementById("request-list");
+
+    if (!requests.length) {
+      list.innerHTML = '<div class="empty-state">No saved requests yet.</div>';
+      return;
+    }
+
+    list.innerHTML = requests.map(r => `
+      <div class="req-item status-${r.status}">
+        <div class="req-item-header">
+          <span class="req-item-title">${escHtml(r.dept)}</span>
+          <span class="req-badge ${BADGE[r.status] || ""}">${LABEL[r.status] || r.status}</span>
+        </div>
+        <div class="req-meta">${escHtml(r.desc)}</div>
+        <div class="req-meta">Submitted: ${escHtml(r.date)}</div>
+        <div class="req-actions">
+          <button class="btn btn-outline btn-sm" onclick="viewLetter(${r.id})">View Letter</button>
+          <select class="btn btn-sm" style="padding:.3rem .5rem" onchange="updateStatus(${r.id}, this.value)">
+            <option value="submitted"  ${r.status==="submitted" ?"selected":""}>Submitted</option>
+            <option value="pending"    ${r.status==="pending"   ?"selected":""}>Pending</option>
+            <option value="received"   ${r.status==="received"  ?"selected":""}>Received</option>
+            <option value="denied"     ${r.status==="denied"    ?"selected":""}>Denied</option>
+          </select>
+          <button class="btn btn-danger btn-sm" onclick="deleteRequest(${r.id})">Delete</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // ── Clear ──────────────────────────────────────────────────────────────────
+
+  function clearForm() {
+    ["your-name","your-email","your-phone","records-desc","date-range","fee-waiver"]
+      .forEach(id => document.getElementById(id).value = "");
+    const box = document.getElementById("preview-box");
+    box.textContent = "Fill in the form above and click \"Generate Letter\" to preview your request.";
+    box.classList.add("empty");
+    delete box.dataset.letter;
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  renderTracker();
+</script>
+</body>
+</html>
