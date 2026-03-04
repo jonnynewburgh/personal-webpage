@@ -183,6 +183,46 @@
     #toast.show { opacity: 1; }
 
     .empty-state { text-align: center; color: var(--muted); padding: 1.5rem 0; font-size: .875rem; }
+
+    /* ── AI Polish ── */
+    .ai-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #fdf4ff 100%);
+      border: 1px solid #c7d2fe;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .ai-box-label {
+      font-size: .78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: #4f46e5; margin-bottom: .6rem;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .ai-box textarea {
+      border-color: #c7d2fe;
+      background: #fff;
+      min-height: 72px;
+    }
+    .ai-box textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .btn-ai { background: #4f46e5; color: #fff; }
+    .btn-ai:disabled { opacity: .5; cursor: not-allowed; }
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .api-key-row {
+      display: flex; gap: .5rem; align-items: center; margin-top: .6rem;
+    }
+    .api-key-row input {
+      font-size: .8rem; padding: .35rem .6rem; flex: 1;
+      border-color: #c7d2fe; background: #fff;
+    }
+    .api-key-row input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .api-key-row label { font-size: .78rem; font-weight: 600; color: #4f46e5; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -235,6 +275,28 @@
           <option value="Other / Unknown">Other / Unknown</option>
         </select>
         <small>Select the department that likely holds the records you need.</small>
+      </div>
+
+      <!-- AI Polish -->
+      <div class="ai-box">
+        <div class="ai-box-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          AI Request Assistant
+        </div>
+        <div class="form-row" style="margin-bottom:.6rem;">
+          <textarea id="lazy-input" placeholder="Describe roughly what you want, e.g. &quot;I want emails between the mayor and Beltline people about the new park&quot; or &quot;police use of force reports from last year&quot;"></textarea>
+        </div>
+        <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
+          <button class="btn btn-ai" id="polish-btn" onclick="polishRequest()">
+            Make it Better
+          </button>
+          <span style="font-size:.78rem; color:#6366f1;">Claude will rewrite this into a precise, legally effective description.</span>
+        </div>
+        <div class="api-key-row" style="margin-top:.75rem;">
+          <label for="api-key-input">Anthropic API Key</label>
+          <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" oninput="saveApiKey()" />
+        </div>
+        <div style="font-size:.72rem; color:#6366f1; margin-top:.3rem;">Key is saved in your browser only (localStorage). Never sent anywhere except api.anthropic.com.</div>
       </div>
 
       <div class="form-row">
@@ -515,8 +577,86 @@ Email: ${email}${phoneLine}`;
     delete box.dataset.letter;
   }
 
+  // ── API Key ────────────────────────────────────────────────────────────────
+
+  function saveApiKey() {
+    const k = document.getElementById("api-key-input").value.trim();
+    if (k) localStorage.setItem("atl_foia_apikey", k);
+    else localStorage.removeItem("atl_foia_apikey");
+  }
+
+  function loadApiKey() {
+    return localStorage.getItem("atl_foia_apikey") || "";
+  }
+
+  // ── AI Polish ──────────────────────────────────────────────────────────────
+
+  async function polishRequest() {
+    const lazy = document.getElementById("lazy-input").value.trim();
+    if (!lazy) { showToast("Describe what you want first."); return; }
+
+    const apiKey = document.getElementById("api-key-input").value.trim() || loadApiKey();
+    if (!apiKey) { showToast("Enter your Anthropic API key above."); return; }
+
+    const btn = document.getElementById("polish-btn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Thinking…';
+
+    const dept = document.getElementById("department").value;
+    const dateRange = val("date-range");
+
+    const systemPrompt = `You are an expert in Georgia's Open Records Act (O.C.G.A. § 50-18-70). \
+Your job is to convert a rough, informal description of what someone wants into a precise, legally effective \
+description of records for a formal open records request to the City of Atlanta. \
+Write ONLY the records description paragraph(s) — no salutation, no legal citations, no letter boilerplate. \
+Be specific: include document types (emails, contracts, invoices, meeting minutes, reports, etc.), \
+relevant parties, and time periods if mentioned. If the user's input is vague, infer reasonable specifics \
+and mention them. Keep it professional and clear. 2–4 sentences is ideal.`;
+
+    const userMsg = `Department: ${dept}${dateRange ? `\nDate range mentioned: ${dateRange}` : ""}
+Rough request: ${lazy}`;
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-calls": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 512,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userMsg }],
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error?.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const improved = data.content?.[0]?.text?.trim();
+      if (!improved) throw new Error("Empty response from API.");
+
+      document.getElementById("records-desc").value = improved;
+      showToast("Description improved! Review it above.");
+    } catch (e) {
+      showToast("Error: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = "Make it Better";
+    }
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
   renderTracker();
+  // Restore saved API key
+  const savedKey = loadApiKey();
+  if (savedKey) document.getElementById("api-key-input").value = savedKey;
 </script>
 </body>
 </html>
