@@ -1,0 +1,4 @@
+# Morning Briefing dependencies
+anthropic>=0.50.0   # Claude API with web_search_20260209 / web_fetch_20260209 support
+twilio>=9.0.0       # SMS delivery
+pytz>=2024.1        # Timezone-aware datetime for Atlanta (America/New_York)
