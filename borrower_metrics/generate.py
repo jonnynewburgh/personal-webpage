@@ -1,19 +1,19 @@
 """
-Orchestrator: run both PDF and Excel generators for a BorrowerProfile.
+Orchestrator: generate PDF and Excel reports for any typed borrower profile.
 """
 import os
-from .models import BorrowerProfile
-from .pdf_report import generate_pdf
-from .excel_report import generate_excel
+from .models import BaseBorrowerProfile
+from .reports.pdf import generate_pdf
+from .reports.excel import generate_excel
 
 
 def generate_reports(
-    profile: BorrowerProfile,
+    profile: BaseBorrowerProfile,
     output_dir: str = ".",
     stem: str | None = None,
 ) -> tuple[str, str]:
     """
-    Generate a PDF and Excel file for *profile*.
+    Generate a PDF and Excel file for *profile* (any BaseBorrowerProfile subclass).
 
     Returns (pdf_path, excel_path).
     """
