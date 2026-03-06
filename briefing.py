@@ -234,7 +234,27 @@ def send_sms(message: str) -> None:
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+def check_atlanta_time() -> bool:
+    """Return True only if Atlanta's clock is currently between 6:00–7:00 AM.
+
+    The workflow fires at both 10:30 UTC and 11:30 UTC every day to cover
+    EDT and EST. This check ensures exactly one of those runs actually sends
+    the briefing, regardless of DST transitions.
+    """
+    atlanta_tz = pytz.timezone("America/New_York")
+    hour = datetime.now(atlanta_tz).hour
+    return 6 <= hour < 7
+
+
 def main():
+    atlanta_tz = pytz.timezone("America/New_York")
+    now = datetime.now(atlanta_tz)
+    print(f"Atlanta time: {now.strftime('%H:%M %Z')}")
+
+    if not check_atlanta_time():
+        print("Outside the 6–7 AM window — skipping. (The other cron will handle it.)")
+        sys.exit(0)
+
     print("Generating morning briefing...")
 
     try:
