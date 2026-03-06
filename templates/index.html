@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Data Tool</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<header>
+  <h1>&#x1F4E6; Personal Data Tool</h1>
+  <span>Find · Download · Store</span>
+</header>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav>
+    <div class="nav-item active" data-tab="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Find Data
+    </div>
+    <div class="nav-item" data-tab="tables">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      My Tables
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main>
+
+    <!-- ── Search panel ── -->
+    <div id="panel-search" class="panel active">
+
+      <div class="section-title">Search a dataset portal</div>
+      <div class="search-bar">
+        <select id="source-select">
+          <option value="datagov">data.gov</option>
+          <option value="kaggle">Kaggle</option>
+        </select>
+        <input type="text" id="search-input" placeholder="Search datasets… e.g. population, climate, housing" />
+        <button class="btn-primary" id="search-btn">Search</button>
+      </div>
+
+      <div class="section-title">Or paste a direct URL</div>
+      <div class="url-row">
+        <input type="text" id="url-input" placeholder="https://example.com/data.csv  (or any page with a table)" />
+        <button class="btn-primary" id="probe-btn">Probe</button>
+      </div>
+
+      <!-- HTML table chooser appears here -->
+      <div id="table-chooser"></div>
+
+      <!-- Error display -->
+      <div id="search-error" class="error-msg" style="display:none"></div>
+
+      <!-- Import dialog injected here -->
+
+      <div class="section-title">Results</div>
+      <div id="results-list" class="results-list">
+        <div class="empty">No results yet. Try a search above.</div>
+      </div>
+
+      <!-- Active download progress cards -->
+      <div id="progress-area"></div>
+
+    </div>
+
+    <!-- ── Tables panel ── -->
+    <div id="panel-tables" class="panel">
+      <div class="section-title">Stored tables</div>
+      <button class="btn-ghost btn-sm" style="align-self:flex-start" onclick="loadTables()">&#x21BB; Refresh</button>
+      <div id="tables-list" class="tables-list">
+        <div class="empty">Loading…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
