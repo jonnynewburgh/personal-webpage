@@ -1,0 +1,77 @@
+{
+  "name": "Your Organization Name",
+  "org_type": "charter_school",
+  "location": "City, State",
+  "ein": "XX-XXXXXXX",
+  "website": "https://example.org",
+  "year_founded": 2000,
+  "authorizer": "Name of authorizer (charter schools only)",
+  "grade_span": "K-8 (charter schools only)",
+  "prepared_by": "Analyst Name",
+  "report_date": "",
+  "analyst_notes": "Enter narrative underwriting notes here.",
+  "charter_events": [
+    {
+      "year": 2015,
+      "event_type": "original",
+      "description": "Initial charter granted.",
+      "authorizer": null
+    }
+  ],
+  "enrollment_history": [
+    {
+      "year": "2022-23",
+      "total": 400,
+      "capacity": 450
+    },
+    {
+      "year": "2023-24",
+      "total": 420,
+      "capacity": 450
+    }
+  ],
+  "demographics": {
+    "black": 50.0,
+    "hispanic": 25.0,
+    "white": 10.0,
+    "asian": 5.0,
+    "other": 10.0,
+    "free_reduced_lunch": 80.0,
+    "english_learners": 15.0,
+    "special_education": 12.0
+  },
+  "academic_history": [
+    {
+      "year": "2022-23",
+      "ela_proficiency": 40.0,
+      "math_proficiency": 35.0,
+      "ela_growth": 52.0,
+      "math_growth": 50.0,
+      "graduation_rate": null,
+      "attendance_rate": 93.5
+    },
+    {
+      "year": "2023-24",
+      "ela_proficiency": 44.0,
+      "math_proficiency": 38.0,
+      "ela_growth": 54.0,
+      "math_growth": 52.0,
+      "graduation_rate": null,
+      "attendance_rate": 94.2
+    }
+  ],
+  "accountability": {
+    "rating_year": "2023-24",
+    "rating": "Recognized",
+    "framework": "ESSA / State Accountability System",
+    "subgroup_flags": [],
+    "notes": ""
+  },
+  "loan": {
+    "amount": 5000000,
+    "purpose": "Describe the use of loan proceeds.",
+    "financing_type": "NMTC",
+    "proposed_term_years": 7,
+    "collateral": "First mortgage on property."
+  }
+}
