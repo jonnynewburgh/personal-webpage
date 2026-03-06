@@ -1,18 +1,20 @@
 name: Morning Briefing
 
 # ── Schedule ──────────────────────────────────────────────────────────────────
-# Runs at 11:30 AM UTC daily.
-#   • In winter (EST, UTC-5): 11:30 UTC = 6:30 AM ✓
-#   • In summer (EDT, UTC-4): 11:30 UTC = 7:30 AM
+# Two cron entries to track 6:30 AM ET year-round despite DST.
+# GitHub Actions cron runs in UTC, so we switch offsets seasonally:
 #
-# To target 6:30 AM in summer EDT, change cron to: '30 10 * * *'
-# (that will then be 5:30 AM in winter EST — pick whichever trade-off you prefer).
+#   EDT (UTC-4), Apr–Oct:   10:30 UTC = 6:30 AM ✓
+#   EST (UTC-5), Nov–Mar:   11:30 UTC = 6:30 AM ✓
 #
-# You can also trigger a run manually via the GitHub Actions UI ("Run workflow")
-# which is handy for testing.
+# The two DST transition weeks (2nd Sun of March, 1st Sun of November)
+# will be off by ~1 hour — unavoidable with static cron.
+#
+# Trigger a manual run anytime via the GitHub Actions UI ("Run workflow").
 on:
   schedule:
-    - cron: '30 11 * * *'
+    - cron: '30 10 * 4-10 *'    # Apr–Oct  (EDT, UTC-4): 6:30 AM
+    - cron: '30 11 * 1-3,11,12 *' # Jan–Mar, Nov–Dec (EST, UTC-5): 6:30 AM
   workflow_dispatch:   # enable manual runs from the GitHub Actions UI
 
 jobs:
