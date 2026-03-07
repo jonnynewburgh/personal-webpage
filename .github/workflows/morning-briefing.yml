@@ -1,0 +1,47 @@
+name: Morning Briefing
+
+# ── Schedule ──────────────────────────────────────────────────────────────────
+# Two cron entries to track 6:30 AM ET year-round despite DST.
+# GitHub Actions cron runs in UTC, so we switch offsets seasonally:
+#
+#   EDT (UTC-4), Apr–Oct:   10:30 UTC = 6:30 AM ✓
+#   EST (UTC-5), Nov–Mar:   11:30 UTC = 6:30 AM ✓
+#
+# The two DST transition weeks (2nd Sun of March, 1st Sun of November)
+# will be off by ~1 hour — unavoidable with static cron.
+#
+# Trigger a manual run anytime via the GitHub Actions UI ("Run workflow").
+on:
+  schedule:
+    - cron: '30 10 * * *'   # 10:30 UTC = 6:30 AM EDT (UTC-4)
+    - cron: '30 11 * * *'   # 11:30 UTC = 6:30 AM EST (UTC-5)
+    # Both fire every day. briefing.py checks Atlanta's actual clock and
+    # exits silently if it isn't ~6:30 AM, so only the right one sends.
+  workflow_dispatch:   # enable manual runs from the GitHub Actions UI
+
+jobs:
+  send-briefing:
+    name: Generate & send briefing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send morning briefing
+        env:
+          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
+          TWILIO_ACCOUNT_SID:  ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN:   ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_FROM_NUMBER:  ${{ secrets.TWILIO_FROM_NUMBER }}
+          TWILIO_TO_NUMBER:    ${{ secrets.TWILIO_TO_NUMBER }}
+        run: python briefing.py
