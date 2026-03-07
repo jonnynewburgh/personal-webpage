@@ -1,4 +1,11 @@
+flask==3.1.0
+reportlab==4.2.2
+matplotlib==3.9.2
+openpyxl==3.1.5
+click==8.1.7
+Pillow==10.4.0
+
 # Morning Briefing dependencies
-anthropic>=0.50.0   # Claude API with web_search_20260209 / web_fetch_20260209 support
-twilio>=9.0.0       # SMS delivery
-pytz>=2024.1        # Timezone-aware datetime for Atlanta (America/New_York)
+anthropic>=0.50.0
+twilio>=9.0.0
+pytz>=2024.1
