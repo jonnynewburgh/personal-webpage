@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Borrower Metrics Tool</title>
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --teal: #2A7F8F;
+    --gold: #C8952A;
+    --light: #E8EDF4;
+    --gray: #6C757D;
+    --green: #2E7D4F;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #f4f6fb;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 18px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.3px; }
+  header span { font-size: 0.82rem; color: #a8c0e0; }
+
+  .container {
+    max-width: 700px;
+    margin: 60px auto;
+    padding: 0 24px;
+    flex: 1;
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid #dde3ef;
+    border-radius: 10px;
+    padding: 40px 36px;
+    text-align: center;
+  }
+  .card h2 {
+    font-size: 1.3rem;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+  .card p {
+    color: var(--gray);
+    font-size: 0.93rem;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .btn {
+    display: inline-block;
+    background: var(--navy);
+    color: var(--white);
+    text-decoration: none;
+    padding: 11px 26px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s;
+    margin: 6px;
+  }
+  .btn:hover { background: #2a4f8e; }
+  .btn.outline {
+    background: transparent;
+    color: var(--navy);
+    border: 1.5px solid var(--navy);
+  }
+  .btn.outline:hover { background: var(--light); }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 32px 0;
+    text-align: left;
+  }
+  .feature {
+    background: var(--light);
+    border-radius: 7px;
+    padding: 14px 16px;
+  }
+  .feature .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .feature p {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin: 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.78rem;
+    color: var(--gray);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Borrower Metrics Tool</h1>
+  <span>Loan underwriting reports — PDF &amp; Excel</span>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Generate Borrower Metrics Reports</h2>
+    <p>
+      An underwriting tool for community development lenders. Generate detailed
+      PDF and Excel reports for Charter Schools, FQHCs, Early Care providers,
+      and Nonprofits — from built-in sample profiles or your own JSON data.
+    </p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="label">Charter Schools</div>
+        <p>Enrollment, academics, accountability, charter events</p>
+      </div>
+      <div class="feature">
+        <div class="label">FQHCs</div>
+        <p>Patient history, payer mix, UDS quality measures, HRSA grants</p>
+      </div>
+      <div class="feature">
+        <div class="label">Early Care</div>
+        <p>QRIS ratings, age-group enrollment, staff qualifications</p>
+      </div>
+      <div class="feature">
+        <div class="label">Nonprofits</div>
+        <p>Revenue history, program metrics, operating reserves</p>
+      </div>
+    </div>
+
+    <a class="btn" href="https://github.com/jonnynewburgh/personal-webpage" target="_blank">View on GitHub</a>
+    <a class="btn outline" href="https://github.com/jonnynewburgh/personal-webpage/actions" target="_blank">GitHub Actions</a>
+  </div>
+</div>
+
+<footer>
+  Built with Python · Flask · ReportLab · openpyxl
+</footer>
+
+</body>
+</html>
