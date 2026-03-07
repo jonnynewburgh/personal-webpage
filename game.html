@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Developer Tycoon - NMTC/HTC/CDFI Edition</title>
+<style>
+  /* ===== RETRO FLASH GAME STYLES ===== */
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  :root {
+    --bg-dark: #0a0a1a;
+    --bg-panel: #12122a;
+    --bg-card: #1a1a3a;
+    --accent-green: #00ff88;
+    --accent-yellow: #ffdd00;
+    --accent-blue: #00aaff;
+    --accent-purple: #cc44ff;
+    --accent-orange: #ff8800;
+    --accent-red: #ff3344;
+    --text-white: #eeeeff;
+    --text-dim: #8888aa;
+    --border: #334;
+    --grid-line: #1e1e3a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== SCANLINE OVERLAY ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ===== HEADER ===== */
+  #header {
+    background: linear-gradient(90deg, #0a0a2a, #1a0a3a, #0a0a2a);
+    border-bottom: 3px solid var(--accent-purple);
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px rgba(204,68,255,0.3);
+  }
+
+  #game-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--accent-purple);
+    text-shadow: 0 0 10px var(--accent-purple), 2px 2px 0 #440066;
+    letter-spacing: 1px;
+  }
+
+  #header-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .hstat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .hstat-label {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .hstat-value {
+    color: var(--accent-yellow);
+    font-weight: bold;
+    text-shadow: 0 0 6px var(--accent-yellow);
+  }
+
+  #round-info {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent-green);
+    text-shadow: 0 0 8px var(--accent-green);
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  #main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ===== LEFT SIDEBAR ===== */
+  #left-panel {
+    width: 220px;
+    background: var(--bg-panel);
+    border-right: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .panel-section {
+    border-bottom: 1px solid var(--border);
+    padding: 10px;
+  }
+
+  .panel-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    text-shadow: 0 0 6px var(--accent-blue);
+  }
+
+  /* ===== BUILD TOOLS ===== */
+  .build-btn {
+    width: 100%;
+    background: var(--bg-card);
+    border: 2px solid #334;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.1s;
+    color: var(--text-white);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .build-btn:hover, .build-btn.active {
+    border-color: var(--accent-yellow);
+    background: #2a2a4a;
+    box-shadow: 0 0 8px rgba(255,221,0,0.3);
+    transform: translateX(2px);
+  }
+
+  .build-btn .btn-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .build-btn .btn-info {
+    flex: 1;
+  }
+
+  .build-btn .btn-name {
+    color: var(--text-white);
+    font-size: 15px;
+  }
+
+  .build-btn .btn-cost {
+    color: var(--accent-green);
+    font-size: 13px;
+  }
+
+  .build-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ===== COMMUNITY METRICS ===== */
+  .metric-bar {
+    margin-bottom: 8px;
+  }
+
+  .metric-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 3px;
+    color: var(--text-dim);
+  }
+
+  .metric-label span:last-child {
+    color: var(--text-white);
+  }
+
+  .bar-track {
+    height: 10px;
+    background: #1a1a2a;
+    border: 1px solid #334;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s;
+  }
+
+  .bar-fill.jobs { background: linear-gradient(90deg, #00aa44, #00ff88); }
+  .bar-fill.vitality { background: linear-gradient(90deg, #0066ff, #00aaff); }
+  .bar-fill.history { background: linear-gradient(90deg, #aa4400, #ff8800); }
+  .bar-fill.income { background: linear-gradient(90deg, #884400, #ffdd00); }
+
+  /* ===== CENTER MAP ===== */
+  #map-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 50% 100%, #0a1a0a 0%, transparent 60%),
+      var(--bg-dark);
+  }
+
+  #city-name-display {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-shadow: 0 0 4px #334;
+  }
+
+  #map-container {
+    position: relative;
+  }
+
+  #city-grid {
+    display: grid;
+    gap: 3px;
+    padding: 8px;
+    background: #060612;
+    border: 3px solid #334;
+    border-radius: 4px;
+    box-shadow: 0 0 30px rgba(0,0,200,0.15), inset 0 0 20px rgba(0,0,50,0.5);
+  }
+
+  .grid-cell {
+    width: 68px;
+    height: 68px;
+    background: #0d1a0d;
+    border: 1px solid #1a2a1a;
+    border-radius: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    position: relative;
+    transition: all 0.15s;
+    flex-direction: column;
+  }
+
+  .grid-cell:hover:not(.built) {
+    background: #1a2a1a;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 10px rgba(0,255,136,0.3);
+    transform: scale(1.05);
+  }
+
+  .grid-cell.built {
+    cursor: default;
+    background: #0a1a0a;
+  }
+
+  .grid-cell.built:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(0,170,255,0.3);
+  }
+
+  .grid-cell .cell-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.1;
+    margin-top: 2px;
+    font-family: 'VT323', monospace;
+  }
+
+  .grid-cell .cell-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  .grid-cell.available-highlight {
+    animation: pulse-green 1s infinite alternate;
+  }
+
+  @keyframes pulse-green {
+    from { box-shadow: 0 0 4px rgba(0,255,136,0.2); border-color: #1a3a1a; }
+    to { box-shadow: 0 0 12px rgba(0,255,136,0.6); border-color: var(--accent-green); }
+  }
+
+  /* Building type colors */
+  .grid-cell[data-type="nmtc_commercial"] { background: #0a1a0a; }
+  .grid-cell[data-type="nmtc_community"] { background: #0a1a0a; }
+  .grid-cell[data-type="htc_residential"] { background: #1a0e0a; }
+  .grid-cell[data-type="htc_commercial"] { background: #1a0e0a; }
+  .grid-cell[data-type="cdfi_housing"] { background: #0a0a1a; }
+  .grid-cell[data-type="cdfi_small_biz"] { background: #0a0a1a; }
+
+  /* ===== RIGHT PANEL ===== */
+  #right-panel {
+    width: 280px;
+    background: var(--bg-panel);
+    border-left: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  /* ===== FINANCE CARD ===== */
+  #finance-panel {
+    padding: 10px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .finance-tool {
+    background: var(--bg-card);
+    border: 2px solid #334;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .finance-tool:hover {
+    transform: translateX(-2px);
+  }
+
+  .finance-tool.nmtc { border-left: 4px solid var(--accent-green); }
+  .finance-tool.htc  { border-left: 4px solid var(--accent-orange); }
+  .finance-tool.cdfi { border-left: 4px solid var(--accent-blue); }
+
+  .finance-tool.selected {
+    box-shadow: 0 0 12px rgba(255,221,0,0.5);
+    border-color: var(--accent-yellow);
+  }
+
+  .finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .finance-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+  }
+
+  .finance-tool.nmtc .finance-name { color: var(--accent-green); }
+  .finance-tool.htc  .finance-name { color: var(--accent-orange); }
+  .finance-tool.cdfi .finance-name { color: var(--accent-blue); }
+
+  .finance-available {
+    font-size: 13px;
+    color: var(--accent-yellow);
+  }
+
+  .finance-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.3;
+  }
+
+  /* ===== PROJECT DETAIL / EVENT PANEL ===== */
+  #event-panel {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  #event-box {
+    background: var(--bg-card);
+    border: 2px solid #334;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 160px;
+  }
+
+  #event-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent-yellow);
+    margin-bottom: 8px;
+    text-shadow: 0 0 6px var(--accent-yellow);
+  }
+
+  #event-body {
+    font-size: 15px;
+    color: var(--text-white);
+    line-height: 1.5;
+  }
+
+  #event-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .action-btn {
+    background: var(--bg-panel);
+    border: 2px solid #445;
+    border-radius: 4px;
+    padding: 8px 10px;
+    cursor: pointer;
+    color: var(--text-white);
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    text-align: left;
+    transition: all 0.1s;
+  }
+
+  .action-btn:hover {
+    border-color: var(--accent-yellow);
+    background: #2a2a4a;
+    box-shadow: 0 0 8px rgba(255,221,0,0.25);
+  }
+
+  .action-btn.primary {
+    background: linear-gradient(135deg, #1a3a1a, #0a2a0a);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+  .action-btn.primary:hover { box-shadow: 0 0 12px rgba(0,255,136,0.4); }
+
+  .action-btn.danger {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+  }
+
+  /* ===== LOG ===== */
+  #log-panel {
+    height: 120px;
+    background: #060610;
+    border-top: 2px solid var(--border);
+    padding: 8px 12px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .log-entry {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    padding: 1px 0;
+  }
+
+  .log-entry::before { content: '> '; color: var(--accent-green); }
+  .log-entry.good { color: var(--accent-green); }
+  .log-entry.bad  { color: var(--accent-red); }
+  .log-entry.info { color: var(--accent-blue); }
+  .log-entry.warn { color: var(--accent-yellow); }
+
+  /* ===== MODALS ===== */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #modal-overlay.show { display: flex; }
+
+  #modal-box {
+    background: var(--bg-panel);
+    border: 3px solid var(--accent-purple);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(204,68,255,0.4);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  #modal-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--accent-purple);
+    margin-bottom: 14px;
+    text-align: center;
+    text-shadow: 0 0 10px var(--accent-purple);
+  }
+
+  #modal-body {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-white);
+    margin-bottom: 14px;
+  }
+
+  #modal-body strong { color: var(--accent-yellow); }
+  #modal-body .nmtc-text { color: var(--accent-green); }
+  #modal-body .htc-text  { color: var(--accent-orange); }
+  #modal-body .cdfi-text { color: var(--accent-blue); }
+
+  .modal-btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .modal-btn {
+    background: var(--bg-card);
+    border: 2px solid #445;
+    border-radius: 4px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--text-white);
+    transition: all 0.1s;
+  }
+
+  .modal-btn:hover { border-color: var(--accent-yellow); background: #2a2a4a; }
+  .modal-btn.primary { border-color: var(--accent-green); color: var(--accent-green); background: #0a2a0a; }
+  .modal-btn.primary:hover { box-shadow: 0 0 14px rgba(0,255,136,0.4); }
+
+  /* ===== TOOLTIP ===== */
+  #tooltip {
+    position: fixed;
+    background: #1a1a3a;
+    border: 2px solid var(--accent-blue);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--text-white);
+    pointer-events: none;
+    z-index: 900;
+    display: none;
+    max-width: 240px;
+    line-height: 1.5;
+    box-shadow: 0 0 12px rgba(0,170,255,0.3);
+  }
+
+  /* ===== TICKER ===== */
+  #ticker {
+    background: #080818;
+    border-top: 1px solid #223;
+    padding: 3px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  #ticker-inner {
+    display: inline-block;
+    animation: ticker-scroll 35s linear infinite;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding-left: 100%;
+  }
+
+  #ticker-inner span { margin-right: 60px; }
+  #ticker-inner .hi { color: var(--accent-green); }
+  #ticker-inner .lo { color: var(--accent-red); }
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+  }
+
+  /* ===== PIXEL BUILDINGS ===== */
+  .pixel-building {
+    font-size: 32px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  }
+
+  /* ===== SCORE POP ===== */
+  .score-pop {
+    position: absolute;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    pointer-events: none;
+    animation: pop-up 1.5s ease-out forwards;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  @keyframes pop-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+  }
+
+  /* ===== PROGRESS FLASH ===== */
+  #progress-bar-container {
+    height: 4px;
+    background: #1a1a2a;
+    overflow: hidden;
+  }
+
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue), var(--accent-green));
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* ===== INTRO SCREEN ===== */
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    background: #020210;
+    z-index: 800;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  #intro-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 22px;
+    color: var(--accent-purple);
+    text-shadow: 0 0 20px var(--accent-purple), 4px 4px 0 #440066;
+    text-align: center;
+    line-height: 1.5;
+    animation: title-glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes title-glow {
+    from { text-shadow: 0 0 10px var(--accent-purple), 4px 4px 0 #440066; }
+    to   { text-shadow: 0 0 30px var(--accent-purple), 0 0 60px #8800ff, 4px 4px 0 #440066; }
+  }
+
+  #intro-subtitle {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--accent-green);
+    text-align: center;
+    line-height: 1.8;
+    text-shadow: 0 0 8px var(--accent-green);
+  }
+
+  #intro-desc {
+    max-width: 580px;
+    font-size: 18px;
+    color: var(--text-white);
+    text-align: center;
+    line-height: 1.7;
+    padding: 0 20px;
+  }
+
+  #intro-desc .hi { color: var(--accent-yellow); }
+
+  #start-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: var(--bg-dark);
+    background: var(--accent-green);
+    border: none;
+    padding: 16px 32px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0,255,136,0.5), 4px 4px 0 #005522;
+    transition: all 0.1s;
+    animation: btn-pulse 1.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes btn-pulse {
+    from { box-shadow: 0 0 10px rgba(0,255,136,0.4), 4px 4px 0 #005522; }
+    to   { box-shadow: 0 0 30px rgba(0,255,136,0.8), 4px 4px 0 #005522; }
+  }
+
+  #start-btn:hover { transform: scale(1.05); }
+  #start-btn:active { transform: scale(0.97) translate(2px,2px); box-shadow: 0 0 10px rgba(0,255,136,0.4), 2px 2px 0 #005522; }
+
+  .intro-badge-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 600px;
+  }
+
+  .intro-badge {
+    background: var(--bg-card);
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: center;
+    width: 160px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .intro-badge .badge-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+  .intro-badge.nmtc { border: 2px solid var(--accent-green); }
+  .intro-badge.htc  { border: 2px solid var(--accent-orange); }
+  .intro-badge.cdfi { border: 2px solid var(--accent-blue); }
+  .intro-badge.nmtc .badge-name { color: var(--accent-green); font-family: 'Press Start 2P'; font-size: 8px; }
+  .intro-badge.htc  .badge-name { color: var(--accent-orange); font-family: 'Press Start 2P'; font-size: 8px; }
+  .intro-badge.cdfi .badge-name { color: var(--accent-blue); font-family: 'Press Start 2P'; font-size: 8px; }
+
+  /* ===== WIN/LOSE ===== */
+  #endgame-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 800;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  #endgame-screen.show { display: flex; }
+
+  #endgame-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 24px;
+    text-align: center;
+    text-shadow: 0 0 20px currentColor;
+    line-height: 1.5;
+  }
+
+  #endgame-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 12px var(--accent-yellow);
+  }
+
+  #endgame-summary {
+    font-size: 18px;
+    max-width: 500px;
+    text-align: center;
+    line-height: 1.7;
+    color: var(--text-white);
+  }
+
+  #restart-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--bg-dark);
+    background: var(--accent-yellow);
+    border: none;
+    padding: 14px 28px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 0 16px rgba(255,221,0,0.5), 3px 3px 0 #664400;
+  }
+
+  #restart-btn:hover { transform: scale(1.05); }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a1a; }
+  ::-webkit-scrollbar-thumb { background: #334; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #556; }
+</style>
+</head>
+<body>
+
+<!-- INTRO SCREEN -->
+<div id="intro-screen">
+  <div id="intro-title">COMMUNITY<br>DEVELOPER<br>TYCOON</div>
+  <div id="intro-subtitle">FINANCE EDITION v1.0</div>
+  <div class="intro-badge-row">
+    <div class="intro-badge nmtc">
+      <span class="badge-icon">🏢</span>
+      <div class="badge-name">NMTC</div>
+      New Markets Tax Credits for low-income communities
+    </div>
+    <div class="intro-badge htc">
+      <span class="badge-icon">🏛️</span>
+      <div class="badge-name">HTC</div>
+      Historic Tax Credits to restore old buildings
+    </div>
+    <div class="intro-badge cdfi">
+      <span class="badge-icon">🏦</span>
+      <div class="badge-name">CDFI</div>
+      Mission-driven lenders for underserved markets
+    </div>
+  </div>
+  <div id="intro-desc">
+    You are the <span class="hi">Community Development Director</span> of Opportunity City.<br>
+    Use <span class="hi">NMTCs, HTCs, and CDFI loans</span> to revitalize your community.<br>
+    Pick the <em>right tool</em> for each project — or it fails!
+  </div>
+  <button id="start-btn" onclick="startGame()">▶ START GAME</button>
+</div>
+
+<!-- END GAME SCREEN -->
+<div id="endgame-screen">
+  <div id="endgame-title"></div>
+  <div id="endgame-score"></div>
+  <div id="endgame-summary"></div>
+  <button id="restart-btn" onclick="location.reload()">▶ PLAY AGAIN</button>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div id="modal-title"></div>
+    <div id="modal-body"></div>
+    <div class="modal-btn-row" id="modal-buttons"></div>
+  </div>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tooltip"></div>
+
+<!-- PROGRESS BAR -->
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<!-- HEADER -->
+<header id="header">
+  <div id="game-title">COMMUNITY DEVELOPER TYCOON</div>
+  <div id="header-stats">
+    <div class="hstat">
+      <span class="hstat-label">BUDGET</span>
+      <span class="hstat-value" id="stat-budget">$10M</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-label">JOBS CREATED</span>
+      <span class="hstat-value" id="stat-jobs">0</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-label">SCORE</span>
+      <span class="hstat-value" id="stat-score">0</span>
+    </div>
+    <div class="hstat">
+      <span class="hstat-label">GRADE</span>
+      <span class="hstat-value" id="stat-grade">—</span>
+    </div>
+  </div>
+  <div id="round-info">ROUND <span id="round-num">1</span> / 8</div>
+</header>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div class="panel-section">
+      <div class="panel-title">▶ BUILD MENU</div>
+      <div id="build-buttons"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-title">▶ COMMUNITY HEALTH</div>
+      <div id="metrics-display"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-title">▶ CENSUS TRACT</div>
+      <div id="tract-info" style="font-size:14px;color:var(--text-dim);line-height:1.5"></div>
+    </div>
+  </div>
+
+  <!-- CENTER MAP -->
+  <div id="map-area">
+    <div id="city-name-display">◈ OPPORTUNITY CITY — LOW-INCOME CENSUS TRACT #412 ◈</div>
+    <div id="map-container">
+      <div id="city-grid"></div>
+    </div>
+    <div style="font-size:13px;color:var(--text-dim);margin-top:8px" id="map-hint">Click an empty lot to build</div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <div id="finance-panel">
+      <div class="panel-title" style="padding:10px 10px 0">▶ FINANCING TOOLS</div>
+      <div style="padding:10px">
+        <div id="finance-tools-display"></div>
+      </div>
+    </div>
+    <div id="event-panel">
+      <div class="panel-title">▶ PROJECT BRIEFING</div>
+      <div id="event-box">
+        <div id="event-title">WELCOME!</div>
+        <div id="event-body">Select a lot on the map to start building. Each project needs the RIGHT financing tool to succeed!</div>
+        <div id="event-actions"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LOG -->
+<div id="log-panel">
+  <div class="log-entry info">System initialized. Welcome to Opportunity City, Director.</div>
+</div>
+
+<!-- TICKER -->
+<div id="ticker">
+  <div id="ticker-inner">
+    <span>NMTC ALLOCATIONS: $65B deployed since 2000 ★</span>
+    <span class="hi">CDFIs: Over 1,300 certified institutions nationwide ★</span>
+    <span>HISTORIC TAX CREDIT: $6B in annual investment ★</span>
+    <span class="hi">NEW MARKETS: 750,000+ jobs created ★</span>
+    <span>CDFI FUND: Est. 1994 by Congress ★</span>
+    <span class="hi">HTC rehabilitates 1,200+ projects per year ★</span>
+    <span>NMTCs attract private investment to distressed areas ★</span>
+    <span class="hi">CDFIs serve 92% minority borrowers in some markets ★</span>
+    <span>Historic rehab preserves community character & creates jobs ★</span>
+    <span class="hi">NMTC: 39% federal tax credit over 7 years ★</span>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// GAME DATA
+// =====================================================
+
+const BUILDING_TYPES = {
+  nmtc_commercial: {
+    name: 'Business Hub',
+    icon: '🏢',
+    label: 'Biz Hub',
+    cost: 2,
+    tool: 'nmtc',
+    jobs: 40,
+    vitality: 15,
+    history: 0,
+    income: 20,
+    score: 250,
+    desc: 'A commercial development in a low-income census tract. NMTCs attract private equity by giving investors a 39% federal tax credit over 7 years.',
+    why: 'NMTC is perfect here: new commercial development in a distressed community = textbook NMTC use case.',
+    wrong_tool: {
+      htc: 'This is a NEW building, not a historic rehabilitation. HTC requires existing historic structures!',
+      cdfi: 'CDFIs provide loans — great for small pieces, but this project needs equity financing at scale that NMTCs unlock.'
+    }
+  },
+  nmtc_community: {
+    name: 'Community Center',
+    icon: '🏥',
+    label: 'Comm Ctr',
+    cost: 1.5,
+    tool: 'nmtc',
+    jobs: 25,
+    vitality: 30,
+    history: 5,
+    income: 10,
+    score: 200,
+    desc: 'A health clinic + community facility serving low-income residents. Qualifies for NMTCs as a community service facility in a distressed tract.',
+    why: 'NMTCs can finance community service facilities — health, education, food access — in low-income areas. This is a NMTC sweet spot!',
+    wrong_tool: {
+      htc: 'No historic structure to rehabilitate here. HTC is about saving old buildings, not building new ones.',
+      cdfi: 'CDFIs could contribute a loan, but this project needs the deep equity subsidy that only NMTCs provide.'
+    }
+  },
+  htc_residential: {
+    name: 'Historic Apartments',
+    icon: '🏛️',
+    label: 'Hist Apts',
+    cost: 2,
+    tool: 'htc',
+    jobs: 15,
+    vitality: 20,
+    history: 35,
+    income: 15,
+    score: 220,
+    desc: 'A 1920s apartment building on the National Register of Historic Places. Needs full rehabilitation. HTCs give investors a 20% federal credit on qualified rehab expenses.',
+    why: 'HTCs are specifically designed for this: qualified rehabilitation of certified historic structures. Perfect fit!',
+    wrong_tool: {
+      nmtc: 'NMTCs require a commercial purpose and are not designed for residential historic rehab. Wrong tool!',
+      cdfi: 'A CDFI loan alone won\'t bridge the financing gap. Historic rehab is expensive — you need the HTC equity subsidy.'
+    }
+  },
+  htc_commercial: {
+    name: 'Historic Market',
+    icon: '🏪',
+    label: 'Hist Mkt',
+    cost: 2.5,
+    tool: 'htc',
+    jobs: 35,
+    vitality: 25,
+    history: 40,
+    income: 25,
+    score: 300,
+    desc: 'A 19th century market hall listed on the National Register. Converting to mixed retail + community space. Both State HTC (varies) + Federal HTC (20%) apply!',
+    why: 'Historic + commercial = HTC goldmine. State credits can stack with federal credits, making this very financeable.',
+    wrong_tool: {
+      nmtc: 'Could stack with HTC in some deals, but NMTC alone doesn\'t address the historic rehab cost gap.',
+      cdfi: 'CDFI loan is a good complement but not the primary tool — the HTC equity is what makes the deal work.'
+    }
+  },
+  cdfi_housing: {
+    name: 'Affordable Housing',
+    icon: '🏘️',
+    label: 'Aff Hsg',
+    cost: 1.5,
+    tool: 'cdfi',
+    jobs: 10,
+    vitality: 35,
+    history: 0,
+    income: 10,
+    score: 180,
+    desc: 'New affordable rental housing for families earning under 80% AMI. Banks won\'t finance this — CDFI mortgage lending fills the gap with flexible, below-market terms.',
+    why: 'CDFIs specialize in affordable housing lending where conventional banks won\'t go. Mission-driven + flexible underwriting!',
+    wrong_tool: {
+      nmtc: 'NMTCs cannot be used for rental housing. They require active business income, which residential rental doesn\'t qualify.',
+      htc: 'No historic structure here. HTCs only apply to certified historic buildings.'
+    }
+  },
+  cdfi_small_biz: {
+    name: 'Small Biz Loans',
+    icon: '🛍️',
+    label: 'SmBiz $',
+    cost: 1,
+    tool: 'cdfi',
+    jobs: 20,
+    vitality: 20,
+    history: 5,
+    income: 15,
+    score: 160,
+    desc: 'A CDFI-funded small business lending program for micro-enterprises owned by low-income and minority entrepreneurs who can\'t access conventional credit.',
+    why: 'CDFIs are the original mission-driven lenders. Small biz in underserved markets is their bread and butter.',
+    wrong_tool: {
+      nmtc: 'These loans are too small for NMTC deals (typically $1M+ minimum). NMTCs have high transaction costs.',
+      htc: 'HTCs are only for historic building rehabilitation. No connection to small business lending.'
+    }
+  }
+};
+
+const FINANCE_TOOLS = {
+  nmtc: {
+    name: 'NMTC',
+    fullName: 'New Markets Tax Credits',
+    icon: '🏢',
+    color: '#00ff88',
+    initial: 3,
+    desc: 'Attracts private investment to low-income communities via 39% federal tax credit over 7 years. For commercial/community projects in distressed tracts.',
+    compatible: ['nmtc_commercial', 'nmtc_community'],
+    funFact: 'Every $1 of NMTC subsidy attracts ~$7 in private investment!'
+  },
+  htc: {
+    name: 'HTC',
+    fullName: 'Historic Tax Credits',
+    icon: '🏛️',
+    color: '#ff8800',
+    initial: 3,
+    desc: '20% federal credit (+ state credits) for qualified rehabilitation of certified historic structures. Preserves community character.',
+    compatible: ['htc_residential', 'htc_commercial'],
+    funFact: 'HTC has leveraged $144B in private investment since 1976!'
+  },
+  cdfi: {
+    name: 'CDFI',
+    fullName: 'Community Development Financial Inst.',
+    icon: '🏦',
+    color: '#00aaff',
+    initial: 4,
+    desc: 'Mission-driven lenders certified by the CDFI Fund. Flexible loans for housing, small biz, and community facilities where banks won\'t lend.',
+    compatible: ['cdfi_housing', 'cdfi_small_biz'],
+    funFact: 'CDFIs deployed $222B in 2022 alone to underserved communities!'
+  }
+};
+
+const EVENTS = [
+  {
+    id: 'ev_investor',
+    title: 'INVESTOR INTEREST!',
+    body: 'A tax credit investor offers to partner on your next NMTC deal. They\'ll provide equity in exchange for the 39% federal tax credit over 7 years. ACCEPT?',
+    type: 'opportunity',
+    choices: [
+      { text: '✅ Accept — Lock in investor', effect: { nmtc: +1, budget: +1.5 }, result: 'Investor locked in! Your NMTC capacity increases and you gain $1.5M in project equity.' },
+      { text: '❌ Pass — Wait for better terms', effect: {}, result: 'You passed. The investor moved to another city.' }
+    ]
+  },
+  {
+    id: 'ev_audit',
+    title: '⚠️ COMPLIANCE AUDIT',
+    body: 'The IRS is reviewing your HTC projects. If any were NOT on the National Register, you must repay credits. Are your historic projects properly certified?',
+    type: 'risk',
+    choices: [
+      { text: '📋 Yes — All buildings are NR-listed', effect: { budget: 0, score: +50 }, result: 'Audit passed! Your attention to HTC compliance protects your investors.' },
+      { text: '💸 Oops — Pay $1M penalty', effect: { budget: -1, score: -100 }, result: 'Penalty paid. Remember: HTC requires National Register listing BEFORE rehab begins!' }
+    ]
+  },
+  {
+    id: 'ev_cdfi_grant',
+    title: '🎉 CDFI FUND AWARD',
+    body: 'Your CDFI partner received a $2M Financial Assistance award from the U.S. Treasury CDFI Fund! They\'re sharing proceeds with Opportunity City.',
+    type: 'bonus',
+    choices: [
+      { text: '🏦 Expand CDFI lending program', effect: { cdfi: +1, budget: +0.5, vitality: +10 }, result: 'Excellent! CDFI capacity up. Treasury grants amplify every dollar of community lending.' },
+      { text: '🏘️ Direct funds to housing', effect: { budget: +1, vitality: +15 }, result: 'Smart choice! Affordable housing gets a boost from Treasury CDFI funding.' }
+    ]
+  },
+  {
+    id: 'ev_tract_redraw',
+    title: '📊 CENSUS TRACT UPDATE',
+    body: 'New census data shows your tract\'s poverty rate dropped below 20%. You may LOSE NMTC eligibility! Act now.',
+    type: 'risk',
+    choices: [
+      { text: '⚡ Rush two NMTC projects NOW', effect: { nmtc: -1, budget: -0.5, jobs: +20, score: +100 }, result: 'You deployed NMTC allocation quickly. Future eligibility may be limited but you secured jobs!' },
+      { text: '🔄 Pursue Low-Income Community designation', effect: { score: +75 }, result: 'Your advocacy gets the Treasury to maintain the LIC designation. NMTC eligibility preserved!' }
+    ]
+  },
+  {
+    id: 'ev_historic_fire',
+    title: '🔥 HISTORIC BUILDING DAMAGED',
+    body: 'A fire damaged a contributing structure in your historic district. Rebuild authentically to maintain National Register status and HTC eligibility?',
+    type: 'risk',
+    choices: [
+      { text: '🏛️ Restore authentically ($2M)', effect: { budget: -2, history: +20, htc: +1, score: +120 }, result: 'Authentic restoration preserves historic integrity and unlocks MORE HTC for the district!' },
+      { text: '🏗️ Modern rebuild (cheaper)', effect: { history: -20, score: -80 }, result: 'Modern rebuild removes this building from the historic district. HTC eligibility threatened!' }
+    ]
+  },
+  {
+    id: 'ev_anchor_tenant',
+    title: '🎯 ANCHOR TENANT ALERT',
+    body: 'A grocery chain wants to open in your NMTC commercial project! This counts as a "qualified active low-income community business" and boosts your NMTC deal value.',
+    type: 'opportunity',
+    choices: [
+      { text: '🛒 Welcome the grocer', effect: { budget: +1, jobs: +30, vitality: +20, score: +150 }, result: 'Food desert solved! NMTC-financed grocery store opens. Community health skyrockets.' },
+      { text: '🏪 Hold for local tenant', effect: { vitality: +10, score: +60 }, result: 'Local business opens instead. Smaller financial impact but stronger community roots.' }
+    ]
+  },
+  {
+    id: 'ev_predatory',
+    title: '⚠️ PREDATORY LENDER MOVES IN',
+    body: 'A payday lender wants to open in your community. Your CDFI partner can counter with affordable small-dollar loans. Respond?',
+    type: 'risk',
+    choices: [
+      { text: '🏦 Deploy CDFI small-dollar products', effect: { cdfi: -1, vitality: +25, score: +100 }, result: 'CDFI fights predatory lending with responsible products. Community financial health up!' },
+      { text: '🤷 Allow market to decide', effect: { vitality: -20, income: -10, score: -50 }, result: 'Predatory lender extracts wealth from community. Vitality drops significantly.' }
+    ]
+  }
+];
+
+// =====================================================
+// GAME STATE
+// =====================================================
+
+const GRID_SIZE = 4; // 4x4 = 16 lots
+const TOTAL_ROUNDS = 8;
+
+let state = {
+  budget: 10,        // in $M
+  jobs: 0,
+  score: 0,
+  round: 1,
+  tools: { nmtc: 3, htc: 3, cdfi: 4 },
+  metrics: { jobs: 0, vitality: 20, history: 10, income: 30 },
+  grid: [],          // Array of 16 cells
+  selectedBuildType: null,
+  selectedFinanceTool: null,
+  eventQueue: [...EVENTS].sort(() => Math.random() - 0.5),
+  eventsFired: 0,
+  buildingsPlaced: 0,
+  gameOver: false,
+  log: []
+};
+
+// Initialize grid
+for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+  state.grid.push({ built: false, type: null, building: null });
+}
+
+// =====================================================
+// UI UTILITIES
+// =====================================================
+
+function $(id) { return document.getElementById(id); }
+
+function addLog(msg, cls = '') {
+  const log = $('log-panel');
+  const div = document.createElement('div');
+  div.className = 'log-entry ' + cls;
+  div.textContent = msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  if (log.children.length > 50) log.removeChild(log.firstChild);
+}
+
+function formatMoney(m) {
+  if (m >= 1) return `$${m.toFixed(1)}M`;
+  return `$${(m * 1000).toFixed(0)}K`;
+}
+
+function showTooltip(text, x, y) {
+  const t = $('tooltip');
+  t.textContent = text;
+  t.style.display = 'block';
+  t.style.left = (x + 14) + 'px';
+  t.style.top = (y - 10) + 'px';
+}
+
+function hideTooltip() {
+  $('tooltip').style.display = 'none';
+}
+
+function popScore(el, text, color = '#ffdd00') {
+  const pop = document.createElement('div');
+  pop.className = 'score-pop';
+  pop.textContent = text;
+  pop.style.color = color;
+  pop.style.left = (el.offsetLeft + el.offsetWidth / 2 - 20) + 'px';
+  pop.style.top = el.offsetTop + 'px';
+  el.parentElement.appendChild(pop);
+  setTimeout(() => pop.remove(), 1600);
+}
+
+function showModal(title, body, buttons) {
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = body;
+  const btnRow = $('modal-buttons');
+  btnRow.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'modal-btn ' + (b.cls || '');
+    btn.innerHTML = b.text;
+    btn.onclick = () => {
+      $('modal-overlay').classList.remove('show');
+      if (b.cb) b.cb();
+    };
+    btnRow.appendChild(btn);
+  });
+  $('modal-overlay').classList.add('show');
+}
+
+// =====================================================
+// RENDERING
+// =====================================================
+
+function renderAll() {
+  renderHeader();
+  renderGrid();
+  renderBuildMenu();
+  renderMetrics();
+  renderFinanceTools();
+  renderTractInfo();
+  updateProgress();
+}
+
+function renderHeader() {
+  $('stat-budget').textContent = formatMoney(state.budget);
+  $('stat-jobs').textContent = state.metrics.jobs;
+  $('stat-score').textContent = state.score;
+  $('stat-grade').textContent = getGrade();
+  $('round-num').textContent = state.round;
+
+  // Budget color warning
+  const bv = $('stat-budget');
+  bv.style.color = state.budget < 2 ? '#ff3344' : state.budget < 4 ? '#ff8800' : '#ffdd00';
+}
+
+function getGrade() {
+  if (state.score >= 1500) return 'A+';
+  if (state.score >= 1200) return 'A';
+  if (state.score >= 900)  return 'B';
+  if (state.score >= 600)  return 'C';
+  if (state.score >= 300)  return 'D';
+  return 'F';
+}
+
+function renderGrid() {
+  const grid = $('city-grid');
+  grid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+  grid.innerHTML = '';
+
+  state.grid.forEach((cell, i) => {
+    const div = document.createElement('div');
+    div.className = 'grid-cell';
+    div.dataset.index = i;
+
+    if (cell.built && cell.building) {
+      div.classList.add('built');
+      div.dataset.type = cell.type;
+
+      const btype = BUILDING_TYPES[cell.type];
+      const toolInfo = FINANCE_TOOLS[btype.tool];
+
+      // Badge showing financing tool
+      const badge = document.createElement('div');
+      badge.className = 'cell-badge';
+      badge.textContent = toolInfo.icon;
+      div.appendChild(badge);
+
+      // Building icon
+      const icon = document.createElement('div');
+      icon.className = 'pixel-building';
+      icon.textContent = btype.icon;
+      div.appendChild(icon);
+
+      // Label
+      const lbl = document.createElement('div');
+      lbl.className = 'cell-label';
+      lbl.textContent = btype.label;
+      div.appendChild(lbl);
+
+      // Tooltip
+      div.addEventListener('mouseenter', e => {
+        showTooltip(`${btype.name}\nFinanced with: ${toolInfo.fullName}\n+${btype.jobs} jobs`, e.clientX, e.clientY);
+      });
+      div.addEventListener('mouseleave', hideTooltip);
+
+    } else {
+      // Empty lot
+      const hasSelection = state.selectedBuildType !== null;
+      if (hasSelection) div.classList.add('available-highlight');
+
+      const lbl = document.createElement('div');
+      lbl.className = 'cell-label';
+      lbl.textContent = '📍 vacant';
+      div.appendChild(lbl);
+
+      div.addEventListener('click', () => onCellClick(i));
+      div.addEventListener('mouseenter', e => {
+        if (state.selectedBuildType) {
+          const bt = BUILDING_TYPES[state.selectedBuildType];
+          showTooltip(`Build ${bt.name} here?\nCost: ${formatMoney(bt.cost)}\nNeeds: ${bt.tool.toUpperCase()}`, e.clientX, e.clientY);
+        }
+      });
+      div.addEventListener('mouseleave', hideTooltip);
+    }
+    grid.appendChild(div);
+  });
+}
+
+function renderBuildMenu() {
+  const container = $('build-buttons');
+  container.innerHTML = '';
+
+  Object.entries(BUILDING_TYPES).forEach(([key, bt]) => {
+    const canAfford = state.budget >= bt.cost;
+    const toolAvail = state.tools[bt.tool] > 0;
+    const available = canAfford && toolAvail;
+
+    const btn = document.createElement('div');
+    btn.className = 'build-btn' + (state.selectedBuildType === key ? ' active' : '') + (!available ? ' disabled' : '');
+
+    btn.innerHTML = `
+      <div class="btn-icon">${bt.icon}</div>
+      <div class="btn-info">
+        <div class="btn-name">${bt.name}</div>
+        <div class="btn-cost">${formatMoney(bt.cost)} · ${bt.tool.toUpperCase()}</div>
+      </div>
+    `;
+
+    if (available) {
+      btn.addEventListener('click', () => selectBuildType(key));
+    }
+
+    btn.addEventListener('mouseenter', e => {
+      showTooltip(`${bt.name}\n${bt.desc.substring(0,80)}...`, e.clientX, e.clientY);
+    });
+    btn.addEventListener('mouseleave', hideTooltip);
+
+    container.appendChild(btn);
+  });
+}
+
+function renderMetrics() {
+  const container = $('metrics-display');
+  const m = state.metrics;
+  const bars = [
+    { key: 'jobs', label: 'Jobs', cls: 'jobs', val: Math.min(100, m.jobs / 2), display: m.jobs },
+    { key: 'vitality', label: 'Vitality', cls: 'vitality', val: m.vitality, display: m.vitality + '%' },
+    { key: 'history', label: 'Heritage', cls: 'history', val: m.history, display: m.history + '%' },
+    { key: 'income', label: 'Income', cls: 'income', val: m.income, display: m.income + '%' }
+  ];
+
+  container.innerHTML = bars.map(b => `
+    <div class="metric-bar">
+      <div class="metric-label"><span>${b.label}</span><span>${b.display}</span></div>
+      <div class="bar-track"><div class="bar-fill ${b.cls}" style="width:${Math.min(100,b.val)}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function renderFinanceTools() {
+  const container = $('finance-tools-display');
+  container.innerHTML = '';
+
+  Object.entries(FINANCE_TOOLS).forEach(([key, tool]) => {
+    const avail = state.tools[key];
+    const div = document.createElement('div');
+    div.className = `finance-tool ${key}` + (state.selectedFinanceTool === key ? ' selected' : '');
+
+    div.innerHTML = `
+      <div class="finance-header">
+        <div class="finance-name">${tool.icon} ${tool.name}</div>
+        <div class="finance-available">${avail} left</div>
+      </div>
+      <div class="finance-desc">${tool.desc.substring(0, 90)}...</div>
+    `;
+
+    div.addEventListener('click', () => showFinanceLearnModal(key));
+    div.addEventListener('mouseenter', e => {
+      showTooltip(`${tool.fullName}\n${tool.funFact}`, e.clientX, e.clientY);
+    });
+    div.addEventListener('mouseleave', hideTooltip);
+    container.appendChild(div);
+  });
+}
+
+function renderTractInfo() {
+  const pct = state.buildingsPlaced;
+  const eligible = state.tools.nmtc > 0;
+  $('tract-info').innerHTML = `
+    Tract #412 Status:<br>
+    Poverty rate: <span style="color:#ff8800">28.4%</span><br>
+    Median income: <span style="color:#ff8800">52% AMI</span><br>
+    NMTC eligible: <span style="color:${eligible ? '#00ff88' : '#ff3344'}">${eligible ? 'YES ✓' : 'DEPLETED'}</span><br>
+    Historic district: <span style="color:#ff8800">PARTIAL</span><br>
+    Built: <span style="color:#00aaff">${pct}/${GRID_SIZE*GRID_SIZE} lots</span>
+  `;
+}
+
+function updateProgress() {
+  const pct = (state.round - 1) / TOTAL_ROUNDS * 100;
+  $('progress-bar').style.width = pct + '%';
+}
+
+// =====================================================
+// GAME LOGIC
+// =====================================================
+
+function selectBuildType(key) {
+  state.selectedBuildType = state.selectedBuildType === key ? null : key;
+  state.selectedFinanceTool = null;
+  renderAll();
+
+  if (state.selectedBuildType) {
+    const bt = BUILDING_TYPES[key];
+    const tool = FINANCE_TOOLS[bt.tool];
+    $('event-title').textContent = `📋 ${bt.name.toUpperCase()}`;
+    $('event-body').innerHTML = `
+      <strong style="color:${tool.color}">${bt.name}</strong><br><br>
+      ${bt.desc}<br><br>
+      <strong>Best financing:</strong> <span style="color:${tool.color}">${tool.name} — ${tool.fullName}</span><br><br>
+      💡 ${bt.why}<br><br>
+      <em style="color:#8888aa">Click a vacant lot on the map to place this building.</em>
+    `;
+    $('event-actions').innerHTML = `
+      <div class="action-btn danger" onclick="cancelBuild()">✖ Cancel Build</div>
+    `;
+  } else {
+    resetBriefing();
+  }
+}
+
+function cancelBuild() {
+  state.selectedBuildType = null;
+  state.selectedFinanceTool = null;
+  renderAll();
+  resetBriefing();
+}
+
+function resetBriefing() {
+  $('event-title').textContent = 'PROJECT BRIEFING';
+  $('event-body').textContent = 'Select a building from the Build Menu, then click a vacant lot to place it. Remember: each project needs the RIGHT financing tool!';
+  $('event-actions').innerHTML = '';
+}
+
+function onCellClick(cellIndex) {
+  if (state.grid[cellIndex].built) return;
+  if (!state.selectedBuildType) {
+    addLog('Select a building type first!', 'warn');
+    return;
+  }
+  if (state.gameOver) return;
+
+  const bt = BUILDING_TYPES[state.selectedBuildType];
+  showBuildDialog(cellIndex, state.selectedBuildType, bt);
+}
+
+function showBuildDialog(cellIndex, typeKey, bt) {
+  const tool = FINANCE_TOOLS[bt.tool];
+
+  // Show financing challenge
+  const toolKeys = ['nmtc', 'htc', 'cdfi'];
+  const toolButtons = toolKeys.map(tk => {
+    const t = FINANCE_TOOLS[tk];
+    const avail = state.tools[tk];
+    const isCorrect = tk === bt.tool;
+    return {
+      text: `${t.icon} ${t.name} — ${t.fullName} (${avail} available)`,
+      cls: avail > 0 ? '' : 'disabled',
+      cb: () => {
+        if (avail <= 0) {
+          addLog(`No ${t.name} allocations remaining!`, 'bad');
+          return;
+        }
+        attemptBuild(cellIndex, typeKey, bt, tk, isCorrect);
+      }
+    };
+  });
+
+  showModal(
+    `🏗️ FINANCE THIS PROJECT`,
+    `<strong>${bt.icon} ${bt.name}</strong><br><br>
+    ${bt.desc}<br><br>
+    Cost: <strong>${formatMoney(bt.cost)}</strong> &nbsp;|&nbsp; Your budget: <strong>${formatMoney(state.budget)}</strong><br><br>
+    <strong style="color:#ffdd00">Which financing tool is BEST for this project?</strong>`,
+    [
+      ...toolButtons,
+      { text: '↩ Cancel', cb: () => {} }
+    ]
+  );
+}
+
+function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
+  if (state.budget < bt.cost) {
+    addLog('Insufficient budget!', 'bad');
+    showModal('💸 INSUFFICIENT FUNDS',
+      `You need <strong>${formatMoney(bt.cost)}</strong> but only have <strong>${formatMoney(state.budget)}</strong>.<br><br>
+      Complete events to earn more budget, or choose a cheaper project.`,
+      [{ text: '← Back', cls: 'primary' }]
+    );
+    return;
+  }
+
+  if (isCorrect) {
+    // SUCCESS
+    state.grid[cellIndex].built = true;
+    state.grid[cellIndex].type = typeKey;
+    state.grid[cellIndex].building = bt;
+
+    state.budget -= bt.cost;
+    state.tools[chosenTool]--;
+    state.metrics.jobs += bt.jobs;
+    state.metrics.vitality = Math.min(100, state.metrics.vitality + bt.vitality);
+    state.metrics.history = Math.min(100, state.metrics.history + bt.history);
+    state.metrics.income = Math.min(100, state.metrics.income + bt.income);
+    state.score += bt.score;
+    state.buildingsPlaced++;
+
+    const tool = FINANCE_TOOLS[bt.tool];
+
+    addLog(`✓ ${bt.name} built with ${tool.name}! +${bt.jobs} jobs, +${bt.score} score`, 'good');
+
+    showModal(
+      '🎉 PROJECT FUNDED!',
+      `<strong style="color:#00ff88">${bt.icon} ${bt.name} — SUCCESS!</strong><br><br>
+      You correctly used <strong class="${bt.tool}-text">${tool.name} — ${tool.fullName}</strong>.<br><br>
+      💡 <em>${bt.why}</em><br><br>
+      <strong>Project Impact:</strong><br>
+      • +${bt.jobs} jobs created<br>
+      • Community vitality: +${bt.vitality}<br>
+      • Score: +${bt.score} points<br><br>
+      <strong style="color:#ffdd00">Fun fact:</strong> ${tool.funFact}`,
+      [{ text: '▶ Continue', cls: 'primary', cb: () => { advanceRound(); } }]
+    );
+
+    state.selectedBuildType = null;
+    renderAll();
+
+  } else {
+    // WRONG TOOL
+    const wrongMsg = bt.wrong_tool[chosenTool] || 'That financing tool is not appropriate for this project type.';
+    const correctTool = FINANCE_TOOLS[bt.tool];
+
+    state.score -= 50;
+    addLog(`✗ Wrong financing tool for ${bt.name}! -50 score`, 'bad');
+
+    showModal(
+      '❌ WRONG FINANCING TOOL!',
+      `<strong style="color:#ff3344">That tool won\'t work here!</strong><br><br>
+      <strong>${bt.icon} ${bt.name}</strong> cannot be financed with <strong>${FINANCE_TOOLS[chosenTool].name}</strong>.<br><br>
+      ⚠️ ${wrongMsg}<br><br>
+      <strong style="color:#00ff88">Correct answer: ${correctTool.icon} ${correctTool.name}</strong><br>
+      ${correctTool.desc}<br><br>
+      <em style="color:#8888aa">-50 points. Try again with the right tool!</em>`,
+      [{ text: '↩ Try Again', cb: () => showBuildDialog(cellIndex, typeKey, bt) }]
+    );
+  }
+}
+
+function advanceRound() {
+  state.round++;
+
+  if (state.round > TOTAL_ROUNDS) {
+    endGame();
+    return;
+  }
+
+  // Maybe fire an event
+  if (state.eventsFired < state.eventQueue.length && (state.round % 2 === 0 || state.round === 3)) {
+    const ev = state.eventQueue[state.eventsFired];
+    state.eventsFired++;
+    setTimeout(() => showEvent(ev), 400);
+  } else {
+    addLog(`Round ${state.round} — Pick your next project!`, 'info');
+    renderAll();
+  }
+}
+
+function showEvent(ev) {
+  const choiceButtons = ev.choices.map((choice, i) => ({
+    text: choice.text,
+    cls: i === 0 ? 'primary' : '',
+    cb: () => applyEventChoice(ev, choice)
+  }));
+
+  showModal(
+    `⚡ EVENT: ${ev.title}`,
+    `<em style="color:#8888aa">Round ${state.round} event</em><br><br>${ev.body}`,
+    choiceButtons
+  );
+}
+
+function applyEventChoice(ev, choice) {
+  const fx = choice.effect;
+
+  if (fx.budget)   state.budget   = Math.max(0, state.budget + fx.budget);
+  if (fx.nmtc)     state.tools.nmtc = Math.max(0, state.tools.nmtc + fx.nmtc);
+  if (fx.htc)      state.tools.htc  = Math.max(0, state.tools.htc  + fx.htc);
+  if (fx.cdfi)     state.tools.cdfi = Math.max(0, state.tools.cdfi + fx.cdfi);
+  if (fx.jobs)     state.metrics.jobs += fx.jobs;
+  if (fx.vitality) state.metrics.vitality = Math.min(100, Math.max(0, state.metrics.vitality + fx.vitality));
+  if (fx.history)  state.metrics.history  = Math.min(100, Math.max(0, state.metrics.history  + fx.history));
+  if (fx.income)   state.metrics.income   = Math.min(100, Math.max(0, state.metrics.income   + fx.income));
+  if (fx.score)    state.score = Math.max(0, state.score + fx.score);
+
+  addLog(`Event: ${choice.result.substring(0, 70)}`, 'info');
+
+  showModal(
+    '📋 EVENT OUTCOME',
+    `${choice.result}<br><br><em style="color:#8888aa">Continue building Opportunity City...</em>`,
+    [{ text: '▶ Continue', cls: 'primary', cb: () => { renderAll(); } }]
+  );
+}
+
+function showFinanceLearnModal(toolKey) {
+  const tool = FINANCE_TOOLS[toolKey];
+  const compatible = tool.compatible.map(k => {
+    const bt = BUILDING_TYPES[k];
+    return `• <strong>${bt.icon} ${bt.name}</strong> — ${bt.desc.substring(0, 80)}...`;
+  }).join('<br>');
+
+  showModal(
+    `${tool.icon} ${tool.name} — ${tool.fullName}`,
+    `<strong style="color:${tool.color}">${tool.fullName}</strong><br><br>
+    ${tool.desc}<br><br>
+    <strong>Use ${tool.name} for:</strong><br>${compatible}<br><br>
+    <strong style="color:#ffdd00">⭐ Fun Fact:</strong> ${tool.funFact}<br><br>
+    <strong>Remaining allocations: ${state.tools[toolKey]}</strong>`,
+    [{ text: '← Close', cls: 'primary' }]
+  );
+}
+
+function endGame() {
+  state.gameOver = true;
+  const grade = getGrade();
+  const es = $('endgame-screen');
+  es.classList.add('show');
+
+  const win = state.score >= 600;
+  const title = $('endgame-title');
+  title.textContent = win ? '🏆 CITY REVITALIZED!' : '😔 COMMUNITY STRUGGLES...';
+  title.style.color = win ? '#00ff88' : '#ff3344';
+
+  $('endgame-score').textContent = `FINAL SCORE: ${state.score} — GRADE: ${grade}`;
+
+  const jobs = state.metrics.jobs;
+  const built = state.buildingsPlaced;
+  $('endgame-summary').innerHTML = `
+    You built <strong>${built} projects</strong> and created <strong>${jobs} jobs</strong> in Opportunity City.<br><br>
+    ${win
+      ? `Outstanding work! You mastered NMTCs, HTCs, and CDFI financing to transform a distressed community into a thriving one!`
+      : `Opportunity City needs more help. Remember: NMTCs for new commercial projects, HTCs for historic rehab, and CDFIs for housing + small business loans!`
+    }<br><br>
+    <em style="color:#8888aa">In the real world, these tools have revitalized thousands of communities across America.</em>
+  `;
+}
+
+// =====================================================
+// START GAME
+// =====================================================
+
+function startGame() {
+  $('intro-screen').style.display = 'none';
+  renderAll();
+  addLog('Game started! Opportunity City awaits your leadership.', 'info');
+  addLog('Budget: $10M | NMTC: 3 | HTC: 3 | CDFI: 4 allocations', 'info');
+
+  setTimeout(() => {
+    showModal(
+      '📚 HOW TO PLAY',
+      `<strong>Your mission:</strong> Revitalize Opportunity City using 3 powerful financing tools!<br><br>
+      <span class="nmtc-text">🏢 <strong>NMTCs</strong></span> — New Markets Tax Credits: For <em>new commercial/community projects</em> in low-income census tracts. Investors get a 39% federal tax credit over 7 years.<br><br>
+      <span class="htc-text">🏛️ <strong>HTCs</strong></span> — Historic Tax Credits: For <em>rehabilitating certified historic buildings</em>. 20% federal credit + state credits.<br><br>
+      <span class="cdfi-text">🏦 <strong>CDFIs</strong></span> — Community Development Financial Institutions: <em>Mission-driven lenders</em> for housing and small business where banks won\'t go.<br><br>
+      <strong style="color:#ffdd00">Each building needs the RIGHT tool!</strong> Match correctly to score big. Wrong choices cost points!`,
+      [{ text: '▶ LET\'S BUILD!', cls: 'primary' }]
+    );
+  }, 300);
+}
+
+// =====================================================
+// INIT
+// =====================================================
+// (game renders after startGame() is called from intro screen)
+</script>
+</body>
+</html>
