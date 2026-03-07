@@ -1,5 +1,5 @@
-output/
 __pycache__/
 *.pyc
 *.pyo
-.DS_Store
+output/
+.env
