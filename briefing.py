@@ -251,7 +251,9 @@ def main():
     now = datetime.now(atlanta_tz)
     print(f"Atlanta time: {now.strftime('%H:%M %Z')}")
 
-    if not check_atlanta_time():
+    # Skip the time-gate for manual runs triggered via the GitHub Actions UI.
+    manual_run = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+    if not manual_run and not check_atlanta_time():
         print("Outside the 6–7 AM window — skipping. (The other cron will handle it.)")
         sys.exit(0)
 
