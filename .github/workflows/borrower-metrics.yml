@@ -1,0 +1,58 @@
+name: Borrower Metrics Tool
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+    inputs:
+      sample:
+        description: "Sample profile to run (charter_school | fqhc | early_care | nonprofit | all)"
+        required: false
+        default: "all"
+
+jobs:
+  generate-reports:
+    name: Generate Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install flask
+          pip install -r requirements.txt
+
+      - name: List available samples
+        run: python cli.py samples
+
+      - name: Generate — Charter School
+        if: ${{ github.event.inputs.sample == 'all' || github.event.inputs.sample == 'charter_school' || github.event_name != 'workflow_dispatch' }}
+        run: python cli.py sample charter_school --out ./output
+
+      - name: Generate — FQHC
+        if: ${{ github.event.inputs.sample == 'all' || github.event.inputs.sample == 'fqhc' || github.event_name != 'workflow_dispatch' }}
+        run: python cli.py sample fqhc --out ./output
+
+      - name: Generate — Early Care
+        if: ${{ github.event.inputs.sample == 'all' || github.event.inputs.sample == 'early_care' || github.event_name != 'workflow_dispatch' }}
+        run: python cli.py sample early_care --out ./output
+
+      - name: Generate — Nonprofit
+        if: ${{ github.event.inputs.sample == 'all' || github.event.inputs.sample == 'nonprofit' || github.event_name != 'workflow_dispatch' }}
+        run: python cli.py sample nonprofit --out ./output
+
+      - name: Upload generated reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: borrower-reports
+          path: output/
+          retention-days: 7
