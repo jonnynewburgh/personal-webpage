@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Borrower Metrics Tool</title>
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --teal: #2A7F8F;
+    --gold: #C8952A;
+    --light: #E8EDF4;
+    --gray: #6C757D;
+    --green: #2E7D4F;
+    --red: #C0392B;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #f4f6fb;
+    color: #222;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 18px 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.3px; }
+  header span { font-size: 0.82rem; color: #a8c0e0; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── Generate section ─────────────────────────── */
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 12px;
+  }
+
+  .generate-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .sample-card {
+    background: var(--white);
+    border: 1px solid #dde3ef;
+    border-radius: 8px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: box-shadow 0.15s;
+  }
+  .sample-card:hover { box-shadow: 0 2px 10px rgba(27,58,107,0.10); }
+  .sample-card .badge {
+    display: inline-block;
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+  .badge.charter  { background: #e0e8f6; color: var(--navy); }
+  .badge.fqhc     { background: #d8f0ec; color: #1a5e52; }
+  .badge.early    { background: #fef3d8; color: #7a5a0a; }
+  .badge.nonprofit{ background: #ede8f5; color: #4a2e8a; }
+
+  .sample-card h3 { font-size: 0.92rem; font-weight: 600; color: var(--navy); line-height: 1.3; }
+  .sample-card p  { font-size: 0.78rem; color: var(--gray); line-height: 1.4; }
+
+  .btn-generate {
+    margin-top: auto;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .btn-generate:hover { background: #2a4f8e; }
+  .btn-generate:disabled { background: var(--gray); cursor: not-allowed; }
+
+  /* ── Reports table ────────────────────────────── */
+  .reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dde3ef;
+    font-size: 0.86rem;
+  }
+  .reports-table th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .reports-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #eaecf3;
+    vertical-align: middle;
+  }
+  .reports-table tr:last-child td { border-bottom: none; }
+  .reports-table tr:nth-child(even) td { background: var(--light); }
+
+  .file-name { font-weight: 500; color: var(--navy); }
+  .file-size { color: var(--gray); font-size: 0.78rem; }
+
+  .dl-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .dl-link:hover { opacity: 0.8; }
+  .dl-pdf  { background: #fce8e8; color: var(--red); }
+  .dl-xlsx { background: #e2f3e8; color: var(--green); }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--gray);
+    font-size: 0.9rem;
+  }
+
+  /* ── Flash messages ───────────────────────────── */
+  .flash { border-radius: 6px; padding: 12px 18px; margin-bottom: 20px; font-size: 0.86rem; }
+  .flash.ok    { background: #e2f3e8; color: var(--green); border-left: 4px solid var(--green); }
+  .flash.error { background: #fce8e8; color: var(--red);   border-left: 4px solid var(--red); }
+
+  /* ── Spinner ──────────────────────────────────── */
+  .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider { height: 1px; background: #dde3ef; margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Borrower Metrics Tool</h1>
+  <span>Loan underwriting reports — PDF &amp; Excel</span>
+</header>
+
+<div class="container">
+
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Generate section -->
+  <p class="section-title">Generate from sample</p>
+  <div class="generate-grid">
+
+    {% for key, meta in samples.items() %}
+    <div class="sample-card">
+      <span class="badge {{ meta.badge }}">{{ meta.type_label }}</span>
+      <h3>{{ meta.name }}</h3>
+      <p>{{ meta.location }}{% if meta.year_founded %} · Est. {{ meta.year_founded }}{% endif %}</p>
+      <form method="POST" action="/generate/{{ key }}" onsubmit="startSpin(this)">
+        <button class="btn-generate" type="submit">
+          <span class="spinner"></span>Generate reports
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Reports list -->
+  <p class="section-title">Generated reports ({{ report_pairs|length }})</p>
+
+  {% if report_pairs %}
+  <table class="reports-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>PDF</th>
+        <th>Excel</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for name, pdf, xlsx in report_pairs %}
+      <tr>
+        <td>
+          <div class="file-name">{{ name }}</div>
+        </td>
+        <td>
+          {% if pdf %}
+          <a class="dl-link dl-pdf" href="/download/{{ pdf }}" download>
+            ↓ PDF
+          </a>
+          {% else %}<span style="color:var(--gray)">—</span>{% endif %}
+        </td>
+        <td>
+          {% if xlsx %}
+          <a class="dl-link dl-xlsx" href="/download/{{ xlsx }}" download>
+            ↓ Excel
+          </a>
+          {% else %}<span style="color:var(--gray)">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">No reports yet. Generate one from a sample above.</div>
+  {% endif %}
+
+</div>
+
+<script>
+function startSpin(form) {
+  const btn = form.querySelector('button');
+  const spinner = form.querySelector('.spinner');
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  btn.childNodes[btn.childNodes.length - 1].textContent = 'Generating…';
+}
+</script>
+</body>
+</html>
