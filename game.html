@@ -785,9 +785,114 @@
   ::-webkit-scrollbar-track { background: #0a0a1a; }
   ::-webkit-scrollbar-thumb { background: #334; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #556; }
+
+  /* ===== SCREEN FLASH ===== */
+  #screen-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 600;
+    opacity: 0;
+    transition: opacity 0.05s;
+  }
+  #screen-flash.good { background: rgba(0,255,136,0.18); }
+  #screen-flash.bad  { background: rgba(255,51,68,0.22); }
+  #screen-flash.show { opacity: 1; }
+
+  /* ===== STREAK / COMBO BADGE ===== */
+  #streak-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    background: linear-gradient(135deg, #330066, #660033);
+    border: 2px solid var(--accent-purple);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 6px var(--accent-yellow);
+    display: none;
+    white-space: nowrap;
+  }
+  #streak-badge.show { display: block; }
+  #streak-badge.hot {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    text-shadow: 0 0 8px var(--accent-orange);
+    animation: streak-pulse 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes streak-pulse {
+    from { box-shadow: 0 0 6px rgba(255,136,0,0.4); }
+    to   { box-shadow: 0 0 18px rgba(255,136,0,0.9); }
+  }
+
+  /* ===== JUST-BUILT CELL ANIMATION ===== */
+  @keyframes cell-pop {
+    0%   { transform: scale(0.5); opacity: 0.3; }
+    60%  { transform: scale(1.15); }
+    80%  { transform: scale(0.95); }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+  .grid-cell.just-built {
+    animation: cell-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+
+  /* ===== COMBO BONUS TOAST ===== */
+  #combo-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 18px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 20px var(--accent-yellow), 0 0 40px var(--accent-orange);
+    pointer-events: none;
+    z-index: 700;
+    text-align: center;
+    line-height: 1.5;
+    animation: none;
+  }
+  @keyframes combo-show {
+    0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+    20%  { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
+    70%  { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-60%) scale(0.9); opacity: 0; }
+  }
+
+  /* ===== METRIC DANGER GLOW ===== */
+  .bar-fill.danger { background: linear-gradient(90deg, #880000, #ff3344) !important; }
+  .metric-label.danger span:last-child { color: var(--accent-red) !important; }
+
+  /* ===== ACHIEVEMENT TOAST ===== */
+  #achievement-toast {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, #1a0a3a, #0a1a0a);
+    border: 2px solid var(--accent-yellow);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 6px var(--accent-yellow);
+    pointer-events: none;
+    z-index: 700;
+    display: none;
+    max-width: 280px;
+    line-height: 1.6;
+    box-shadow: 0 0 20px rgba(255,221,0,0.4);
+  }
+  #achievement-toast.show { display: block; }
 </style>
 </head>
 <body>
+
+<!-- SCREEN FLASH -->
+<div id="screen-flash"></div>
+<!-- COMBO TOAST -->
+<div id="combo-toast"></div>
+<!-- ACHIEVEMENT TOAST -->
+<div id="achievement-toast"></div>
 
 <!-- INTRO SCREEN -->
 <div id="intro-screen">
@@ -862,6 +967,7 @@
       <span class="hstat-value" id="stat-grade">—</span>
     </div>
   </div>
+  <div id="streak-badge"></div>
   <div id="round-info">ROUND <span id="round-num">1</span> / 8</div>
 </header>
 
@@ -935,6 +1041,64 @@
 </div>
 
 <script>
+// =====================================================
+// AUDIO SYSTEM (Web Audio API — no external files)
+// =====================================================
+const Audio = (() => {
+  let ctx = null;
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    return ctx;
+  }
+  function tone(freq, type, vol, dur, delay = 0) {
+    try {
+      const c = getCtx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.connect(gain); gain.connect(c.destination);
+      osc.type = type; osc.frequency.value = freq;
+      const t = c.currentTime + delay;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t); osc.stop(t + dur + 0.01);
+    } catch(e) {}
+  }
+  function chord(notes, type, vol, dur, delay = 0) {
+    notes.forEach((f, i) => tone(f, type, vol, dur, delay + i * 0.04));
+  }
+  return {
+    click()   { tone(880, 'square', 0.08, 0.05); },
+    success() {
+      tone(523, 'sine', 0.15, 0.12);
+      tone(659, 'sine', 0.15, 0.12, 0.1);
+      tone(784, 'sine', 0.18, 0.2,  0.2);
+      tone(1047,'sine', 0.2,  0.3,  0.32);
+    },
+    fail()    {
+      tone(220, 'sawtooth', 0.15, 0.1);
+      tone(180, 'sawtooth', 0.12, 0.15, 0.12);
+    },
+    combo()   {
+      chord([523,659,784,1047], 'sine', 0.12, 0.25);
+      tone(1568, 'sine', 0.2, 0.4, 0.25);
+    },
+    event()   {
+      tone(440, 'triangle', 0.12, 0.08);
+      tone(550, 'triangle', 0.12, 0.08, 0.1);
+      tone(440, 'triangle', 0.12, 0.08, 0.2);
+    },
+    levelUp() {
+      [523,587,659,698,784,880,988,1047].forEach((f,i) =>
+        tone(f, 'sine', 0.14, 0.12, i * 0.06));
+    },
+    achieve() {
+      chord([659,784,988], 'sine', 0.13, 0.3);
+      tone(1319, 'sine', 0.18, 0.4, 0.15);
+    }
+  };
+})();
+
 // =====================================================
 // GAME DATA
 // =====================================================
@@ -1153,6 +1317,36 @@ const EVENTS = [
       { text: '🏦 Deploy CDFI small-dollar products', effect: { cdfi: -1, vitality: +25, score: +100 }, result: 'CDFI fights predatory lending with responsible products. Community financial health up!' },
       { text: '🤷 Allow market to decide', effect: { vitality: -20, income: -10, score: -50 }, result: 'Predatory lender extracts wealth from community. Vitality drops significantly.' }
     ]
+  },
+  {
+    id: 'ev_superstar',
+    title: '🌟 COMMUNITY CHAMPION AWARD',
+    body: 'Opportunity City is featured in a national community development magazine! Your creative financing strategy is a model for other cities. Claim the award?',
+    type: 'bonus',
+    choices: [
+      { text: '🏆 Accept & host summit (+morale)', effect: { score: +200, vitality: +15, budget: -0.5 }, result: 'The summit draws national attention! Score skyrockets and community pride swells.' },
+      { text: '📣 Turn it into fundraising', effect: { budget: +2, score: +80 }, result: 'Smart pivot — you turn the spotlight into $2M in new philanthropic grants!' }
+    ]
+  },
+  {
+    id: 'ev_recession',
+    title: '📉 ECONOMIC DOWNTURN',
+    body: 'A national recession is squeezing budgets. Tax credit markets are volatile. Do you hunker down or double down on community investment?',
+    type: 'risk',
+    choices: [
+      { text: '💪 Double down — buy distressed assets', effect: { budget: -1.5, score: +180, income: +20 }, result: 'Bold move! You acquire distressed properties at a discount, positioning for a huge recovery.' },
+      { text: '🛡️ Conserve — protect existing projects', effect: { budget: +0.5, score: +40 }, result: 'Prudent choice. You preserve capital and keep your team stable through the downturn.' }
+    ]
+  },
+  {
+    id: 'ev_state_match',
+    title: '🏛️ STATE HISTORIC CREDIT MATCH',
+    body: 'Your state legislature just passed a 10% state HTC to stack with the federal 20%! That\'s 30% total credits for historic rehab projects. Capitalize?',
+    type: 'opportunity',
+    choices: [
+      { text: '🏛️ Rush to certify two historic buildings', effect: { htc: +2, score: +150, history: +15 }, result: 'Two more buildings enter the historic district pipeline. HTC allocation surges!' },
+      { text: '📋 Lobby for expanded eligibility', effect: { score: +90, vitality: +10 }, result: 'Your advocacy expands which buildings qualify — a win for the whole region.' }
+    ]
   }
 ];
 
@@ -1176,6 +1370,10 @@ let state = {
   eventQueue: [...EVENTS].sort(() => Math.random() - 0.5),
   eventsFired: 0,
   buildingsPlaced: 0,
+  correctStreak: 0,
+  totalCorrect: 0,
+  totalWrong: 0,
+  achievements: [],
   gameOver: false,
   log: []
 };
@@ -1229,6 +1427,48 @@ function popScore(el, text, color = '#ffdd00') {
   setTimeout(() => pop.remove(), 1600);
 }
 
+function flashScreen(type) {
+  const el = $('screen-flash');
+  el.className = type + ' show';
+  setTimeout(() => { el.className = type; setTimeout(() => { el.className = ''; }, 150); }, 120);
+}
+
+function showComboToast(text) {
+  const el = $('combo-toast');
+  el.textContent = text;
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  el.style.animation = 'combo-show 1.6s ease-out forwards';
+}
+
+function showAchievement(text) {
+  Audio.achieve();
+  const el = $('achievement-toast');
+  el.innerHTML = '🏆 ACHIEVEMENT!<br>' + text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function checkAchievements() {
+  const unlocked = [];
+  if (state.totalCorrect >= 3 && !state.achievements.includes('hat_trick')) {
+    unlocked.push('hat_trick'); showAchievement('3 correct in a row!');
+  }
+  if (state.buildingsPlaced >= 5 && !state.achievements.includes('builder')) {
+    unlocked.push('builder'); showAchievement('5 buildings funded!');
+  }
+  if (state.metrics.vitality >= 80 && !state.achievements.includes('thriving')) {
+    unlocked.push('thriving'); showAchievement('Community THRIVING!');
+  }
+  if (state.metrics.history >= 60 && !state.achievements.includes('heritage')) {
+    unlocked.push('heritage'); showAchievement('Heritage Preserved!');
+  }
+  if (state.score >= 1000 && !state.achievements.includes('grand')) {
+    unlocked.push('grand'); showAchievement('1000 points scored!');
+  }
+  unlocked.forEach(a => state.achievements.push(a));
+}
+
 function showModal(title, body, buttons) {
   $('modal-title').textContent = title;
   $('modal-body').innerHTML = body;
@@ -1261,6 +1501,12 @@ function renderAll() {
   updateProgress();
 }
 
+function streakMultiplier() {
+  if (state.correctStreak >= 5) return 2;
+  if (state.correctStreak >= 3) return 1.5;
+  return 1;
+}
+
 function renderHeader() {
   $('stat-budget').textContent = formatMoney(state.budget);
   $('stat-jobs').textContent = state.metrics.jobs;
@@ -1271,6 +1517,17 @@ function renderHeader() {
   // Budget color warning
   const bv = $('stat-budget');
   bv.style.color = state.budget < 2 ? '#ff3344' : state.budget < 4 ? '#ff8800' : '#ffdd00';
+
+  // Streak badge
+  const sb = $('streak-badge');
+  if (state.correctStreak >= 2) {
+    const mult = streakMultiplier();
+    sb.classList.add('show');
+    sb.className = 'show' + (state.correctStreak >= 4 ? ' hot' : '');
+    sb.textContent = `🔥 ${state.correctStreak}x STREAK! ${mult > 1 ? mult + 'x PTS' : ''}`;
+  } else {
+    sb.className = '';
+  }
 }
 
 function getGrade() {
@@ -1389,12 +1646,14 @@ function renderMetrics() {
     { key: 'income', label: 'Income', cls: 'income', val: m.income, display: m.income + '%' }
   ];
 
-  container.innerHTML = bars.map(b => `
+  container.innerHTML = bars.map(b => {
+    const danger = b.val < 15;
+    return `
     <div class="metric-bar">
-      <div class="metric-label"><span>${b.label}</span><span>${b.display}</span></div>
-      <div class="bar-track"><div class="bar-fill ${b.cls}" style="width:${Math.min(100,b.val)}%"></div></div>
+      <div class="metric-label${danger ? ' danger' : ''}"><span>${b.label}${danger ? ' ⚠️' : ''}</span><span>${b.display}</span></div>
+      <div class="bar-track"><div class="bar-fill ${b.cls}${danger ? ' danger' : ''}" style="width:${Math.min(100,b.val)}%"></div></div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function renderFinanceTools() {
@@ -1446,6 +1705,7 @@ function updateProgress() {
 // =====================================================
 
 function selectBuildType(key) {
+  Audio.click();
   state.selectedBuildType = state.selectedBuildType === key ? null : key;
   state.selectedFinanceTool = null;
   renderAll();
@@ -1531,6 +1791,7 @@ function showBuildDialog(cellIndex, typeKey, bt) {
 
 function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
   if (state.budget < bt.cost) {
+    Audio.fail();
     addLog('Insufficient budget!', 'bad');
     showModal('💸 INSUFFICIENT FUNDS',
       `You need <strong>${formatMoney(bt.cost)}</strong> but only have <strong>${formatMoney(state.budget)}</strong>.<br><br>
@@ -1541,7 +1802,15 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
   }
 
   if (isCorrect) {
-    // SUCCESS
+    // STREAK & MULTIPLIER
+    state.correctStreak++;
+    state.totalCorrect++;
+    const mult = streakMultiplier();
+    const baseScore = bt.score;
+    const bonusScore = Math.round(baseScore * mult) - baseScore;
+    const totalScore = baseScore + bonusScore;
+
+    // SUCCESS — update state
     state.grid[cellIndex].built = true;
     state.grid[cellIndex].type = typeKey;
     state.grid[cellIndex].building = bt;
@@ -1552,12 +1821,43 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
     state.metrics.vitality = Math.min(100, state.metrics.vitality + bt.vitality);
     state.metrics.history = Math.min(100, state.metrics.history + bt.history);
     state.metrics.income = Math.min(100, state.metrics.income + bt.income);
-    state.score += bt.score;
+    state.score += totalScore;
     state.buildingsPlaced++;
 
     const tool = FINANCE_TOOLS[bt.tool];
 
-    addLog(`✓ ${bt.name} built with ${tool.name}! +${bt.jobs} jobs, +${bt.score} score`, 'good');
+    // Visual + audio feedback
+    Audio.success();
+    flashScreen('good');
+
+    // Animate the cell
+    setTimeout(() => {
+      const cells = document.querySelectorAll('.grid-cell');
+      if (cells[cellIndex]) cells[cellIndex].classList.add('just-built');
+    }, 50);
+
+    // Pop score on grid
+    setTimeout(() => {
+      const cells = document.querySelectorAll('.grid-cell');
+      if (cells[cellIndex]) {
+        popScore(cells[cellIndex], `+${totalScore}`, '#00ff88');
+      }
+    }, 100);
+
+    // Streak toast
+    if (state.correctStreak === 3) {
+      setTimeout(() => { Audio.combo(); showComboToast('🔥 TRIPLE!\n+50% BONUS!'); }, 300);
+    } else if (state.correctStreak === 5) {
+      setTimeout(() => { Audio.combo(); showComboToast('🌟 ON FIRE!\n2x BONUS!'); }, 300);
+    } else if (state.correctStreak >= 7) {
+      setTimeout(() => { Audio.combo(); showComboToast(`🚀 x${state.correctStreak} COMBO!`); }, 300);
+    }
+
+    addLog(`✓ ${bt.name} built with ${tool.name}! +${bt.jobs} jobs, +${totalScore} pts${bonusScore > 0 ? ` (${mult}x COMBO!)` : ''}`, 'good');
+
+    const bonusLine = bonusScore > 0
+      ? `<br><strong style="color:#ffdd00">🔥 COMBO x${state.correctStreak}! Bonus: +${bonusScore} pts</strong>`
+      : '';
 
     showModal(
       '🎉 PROJECT FUNDED!',
@@ -1567,9 +1867,9 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
       <strong>Project Impact:</strong><br>
       • +${bt.jobs} jobs created<br>
       • Community vitality: +${bt.vitality}<br>
-      • Score: +${bt.score} points<br><br>
+      • Score: +${totalScore} points${bonusLine}<br><br>
       <strong style="color:#ffdd00">Fun fact:</strong> ${tool.funFact}`,
-      [{ text: '▶ Continue', cls: 'primary', cb: () => { advanceRound(); } }]
+      [{ text: '▶ Continue', cls: 'primary', cb: () => { checkAchievements(); advanceRound(); } }]
     );
 
     state.selectedBuildType = null;
@@ -1577,10 +1877,15 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
 
   } else {
     // WRONG TOOL
+    state.correctStreak = 0;
+    state.totalWrong++;
     const wrongMsg = bt.wrong_tool[chosenTool] || 'That financing tool is not appropriate for this project type.';
     const correctTool = FINANCE_TOOLS[bt.tool];
 
-    state.score -= 50;
+    Audio.fail();
+    flashScreen('bad');
+
+    state.score = Math.max(0, state.score - 50);
     addLog(`✗ Wrong financing tool for ${bt.name}! -50 score`, 'bad');
 
     showModal(
@@ -1590,16 +1895,28 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
       ⚠️ ${wrongMsg}<br><br>
       <strong style="color:#00ff88">Correct answer: ${correctTool.icon} ${correctTool.name}</strong><br>
       ${correctTool.desc}<br><br>
-      <em style="color:#8888aa">-50 points. Try again with the right tool!</em>`,
+      <em style="color:#8888aa">-50 points. Streak reset. Try again!</em>`,
       [{ text: '↩ Try Again', cb: () => showBuildDialog(cellIndex, typeKey, bt) }]
     );
+    renderAll();
   }
 }
 
 function advanceRound() {
   state.round++;
 
+  // Metric consequences each round
+  if (state.metrics.vitality < 15) {
+    state.budget = Math.max(0, state.budget - 0.5);
+    addLog('⚠️ Low vitality draining budget! -$0.5M', 'bad');
+  }
+  if (state.metrics.income < 15) {
+    state.score = Math.max(0, state.score - 30);
+    addLog('⚠️ Low income hurting score! -30 pts', 'warn');
+  }
+
   if (state.round > TOTAL_ROUNDS) {
+    Audio.levelUp();
     endGame();
     return;
   }
@@ -1608,7 +1925,7 @@ function advanceRound() {
   if (state.eventsFired < state.eventQueue.length && (state.round % 2 === 0 || state.round === 3)) {
     const ev = state.eventQueue[state.eventsFired];
     state.eventsFired++;
-    setTimeout(() => showEvent(ev), 400);
+    setTimeout(() => { Audio.event(); showEvent(ev); }, 400);
   } else {
     addLog(`Round ${state.round} — Pick your next project!`, 'info');
     renderAll();
@@ -1677,20 +1994,44 @@ function endGame() {
 
   const win = state.score >= 600;
   const title = $('endgame-title');
+
+  const gradeEmoji = { 'A+': '🏆', A: '🌟', B: '👍', C: '😐', D: '😟', F: '💀' };
   title.textContent = win ? '🏆 CITY REVITALIZED!' : '😔 COMMUNITY STRUGGLES...';
   title.style.color = win ? '#00ff88' : '#ff3344';
 
-  $('endgame-score').textContent = `FINAL SCORE: ${state.score} — GRADE: ${grade}`;
+  $('endgame-score').textContent = `FINAL SCORE: ${state.score} — GRADE: ${gradeEmoji[grade]} ${grade}`;
 
-  const jobs = state.metrics.jobs;
-  const built = state.buildingsPlaced;
+  const acc = state.totalCorrect + state.totalWrong > 0
+    ? Math.round(state.totalCorrect / (state.totalCorrect + state.totalWrong) * 100)
+    : 0;
+
+  const bestStreak = state.correctStreak; // last streak (simplified)
+
   $('endgame-summary').innerHTML = `
-    You built <strong>${built} projects</strong> and created <strong>${jobs} jobs</strong> in Opportunity City.<br><br>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+      <div style="text-align:center">
+        <div style="color:#8888aa;font-size:13px">BUILDINGS</div>
+        <div style="color:#00ff88;font-size:20px;font-family:'Press Start 2P'">${state.buildingsPlaced}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:#8888aa;font-size:13px">JOBS</div>
+        <div style="color:#ffdd00;font-size:20px;font-family:'Press Start 2P'">${state.metrics.jobs}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:#8888aa;font-size:13px">ACCURACY</div>
+        <div style="color:#00aaff;font-size:20px;font-family:'Press Start 2P'">${acc}%</div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:#8888aa;font-size:13px">VITALITY</div>
+        <div style="color:#ff8800;font-size:20px;font-family:'Press Start 2P'">${state.metrics.vitality}%</div>
+      </div>
+    </div>
+    ${state.achievements.length ? `<div style="color:#ffdd00;margin-bottom:10px">🏅 Achievements: ${state.achievements.length}</div>` : ''}
     ${win
-      ? `Outstanding work! You mastered NMTCs, HTCs, and CDFI financing to transform a distressed community into a thriving one!`
-      : `Opportunity City needs more help. Remember: NMTCs for new commercial projects, HTCs for historic rehab, and CDFIs for housing + small business loans!`
+      ? `Outstanding! You mastered NMTCs, HTCs, and CDFIs to transform a distressed community!`
+      : `Opportunity City needs more help. Remember: NMTCs for new commercial projects, HTCs for historic rehab, CDFIs for housing + small biz!`
     }<br><br>
-    <em style="color:#8888aa">In the real world, these tools have revitalized thousands of communities across America.</em>
+    <em style="color:#8888aa;font-size:14px">In the real world, these tools have revitalized thousands of communities across America.</em>
   `;
 }
 
