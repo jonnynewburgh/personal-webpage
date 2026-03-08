@@ -12,147 +12,214 @@
       --success: #16a34a; --danger: #dc2626;
     }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+    /* Header */
     header { background: var(--blue); color: #fff; padding: 1.25rem 2rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
     header .seal { width: 52px; height: 52px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
     header h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
     header p  { font-size: .85rem; opacity: .8; margin-top: .15rem; }
+
+    /* Layout */
     main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
     @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+
+    /* Cards */
     .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
     .card h2 { font-size: 1.05rem; font-weight: 700; color: var(--blue); border-bottom: 2px solid var(--gold); padding-bottom: .5rem; margin-bottom: 1.25rem; }
-    .jbanner { background: linear-gradient(135deg,#003087,#1e4d9b); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-    .jbanner label { color:#fff; font-size:.85rem; font-weight:700; white-space:nowrap; margin-bottom:0; }
-    .jbanner select { flex:1; min-width:220px; background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.35); font-weight:600; }
-    .jbanner select option { background:#003087; color:#fff; }
-    .jbanner select:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,168,75,.3); }
-    #jlaw { font-size:.78rem; color:rgba(255,255,255,.75); width:100%; margin-top:-.25rem; }
+
+    /* Jurisdiction banner */
+    .j-banner { background: linear-gradient(135deg, #003087 0%, #1e4d9b 100%); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+    .j-banner-top { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+    .j-banner label { color: #fff; font-size: .85rem; font-weight: 700; white-space: nowrap; margin-bottom: 0; }
+    .j-banner select { flex: 1; min-width: 220px; background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35); font-weight: 600; border-radius: 6px; padding: .5rem .75rem; font-size: .9rem; }
+    .j-banner select option { background: #003087; color: #fff; }
+    .j-banner select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,168,75,.3); }
+    #j-law { font-size: .78rem; color: rgba(255,255,255,.75); margin-top: .45rem; }
+
+    /* Quick picks */
+    .j-quick { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .7rem; }
+    .j-quick button { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 99px; padding: .22rem .7rem; font-size: .75rem; cursor: pointer; transition: background .15s; }
+    .j-quick button:hover { background: rgba(255,255,255,.25); }
+
+    /* Region badges */
+    .region-badge { display: inline-block; font-size: .7rem; font-weight: 700; padding: .1rem .5rem; border-radius: 99px; margin-left: .4rem; vertical-align: middle; text-transform: uppercase; letter-spacing: .04em; }
+    .r-us      { background: #dbeafe; color: #1d4ed8; }
+    .r-europe  { background: #dcfce7; color: #15803d; }
+    .r-apac    { background: #fef3c7; color: #92400e; }
+    .r-americas{ background: #ede9fe; color: #5b21b6; }
+    .r-africa  { background: #fee2e2; color: #991b1b; }
+
+    /* Form */
     label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .3rem; }
     input, select, textarea { width: 100%; padding: .55rem .75rem; border: 1px solid var(--border); border-radius: 6px; font-size: .9rem; font-family: inherit; transition: border-color .15s; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,48,135,.12); }
     textarea { resize: vertical; min-height: 110px; }
     .form-row { margin-bottom: 1rem; }
     .form-row small { color: var(--muted); font-size: .78rem; margin-top: .25rem; display: block; }
+
+    /* Buttons */
     .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .6rem 1.25rem; border-radius: 6px; font-size: .9rem; font-weight: 600; cursor: pointer; border: none; transition: opacity .15s, transform .1s; text-decoration: none; }
-    .btn:hover { opacity: .88; } .btn:active { transform: scale(.97); }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-gold    { background: var(--gold); color: var(--blue); }
-    .btn-outline { background: #fff; color: var(--blue); border: 1px solid var(--blue); }
-    .btn-danger  { background: var(--danger); color: #fff; }
-    .btn-sm  { padding: .35rem .75rem; font-size: .8rem; }
-    .btn-row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
-    #preview-box { background:#fafafa; border:1px dashed var(--border); border-radius:6px; padding:1rem 1.25rem; font-size:.85rem; white-space:pre-wrap; font-family:"Courier New",monospace; line-height:1.55; max-height:340px; overflow-y:auto; color:#333; }
-    #preview-box.empty { color:var(--muted); font-style:italic; font-family:inherit; }
-    #request-list { display:flex; flex-direction:column; gap:.75rem; }
-    .req-item { background:var(--light); border:1px solid var(--border); border-left:4px solid var(--blue); border-radius:6px; padding:.75rem 1rem; font-size:.85rem; }
-    .req-item.status-submitted { border-left-color:var(--blue); }
-    .req-item.status-pending   { border-left-color:var(--gold); }
-    .req-item.status-received  { border-left-color:var(--success); }
-    .req-item.status-denied    { border-left-color:var(--danger); }
-    .req-item-header { display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem; }
-    .req-item-title  { font-weight:700; color:var(--blue); }
-    .req-badge { font-size:.72rem; font-weight:700; padding:.15rem .55rem; border-radius:99px; white-space:nowrap; text-transform:uppercase; letter-spacing:.03em; }
-    .badge-submitted { background:#dbeafe; color:#1d4ed8; }
-    .badge-pending   { background:#fef3c7; color:#92400e; }
-    .badge-received  { background:#dcfce7; color:#166534; }
-    .badge-denied    { background:#fee2e2; color:#991b1b; }
-    .req-meta { color:var(--muted); margin-top:.3rem; }
-    .req-actions { display:flex; gap:.4rem; margin-top:.6rem; flex-wrap:wrap; }
-    .info-list { list-style:none; }
-    .info-list li { padding:.5rem 0; border-bottom:1px solid var(--border); font-size:.875rem; display:flex; gap:.5rem; }
-    .info-list li:last-child { border-bottom:none; }
-    .info-list li::before { content:"•"; color:var(--gold); font-weight:900; flex-shrink:0; }
-    .info-list a { color:var(--blue); text-decoration:none; font-weight:600; }
-    .info-list a:hover { text-decoration:underline; }
-    .deadline-note { background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:.75rem 1rem; font-size:.82rem; color:#78350f; margin-top:1rem; }
-    #toast { position:fixed; bottom:1.5rem; right:1.5rem; background:var(--blue); color:#fff; padding:.7rem 1.2rem; border-radius:8px; font-size:.875rem; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,.2); opacity:0; pointer-events:none; transition:opacity .25s; z-index:999; }
-    #toast.show { opacity:1; }
-    .empty-state { text-align:center; color:var(--muted); padding:1.5rem 0; font-size:.875rem; }
-    .ai-box { background:linear-gradient(135deg,#eef2ff,#fdf4ff); border:1px solid #c7d2fe; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.25rem; }
-    .ai-box-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#4f46e5; margin-bottom:.6rem; display:flex; align-items:center; gap:.4rem; }
-    .ai-box textarea { border-color:#c7d2fe; background:#fff; min-height:72px; }
-    .ai-box textarea:focus { border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,.12); }
-    .btn-ai { background:#4f46e5; color:#fff; }
-    .btn-ai:disabled { opacity:.5; cursor:not-allowed; }
-    .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .api-key-row { display:flex; gap:.5rem; align-items:center; margin-top:.6rem; }
-    .api-key-row input { font-size:.8rem; padding:.35rem .6rem; flex:1; border-color:#c7d2fe; background:#fff; }
-    .api-key-row label { font-size:.78rem; font-weight:600; color:#4f46e5; white-space:nowrap; margin-bottom:0; }
+    .btn:hover  { opacity: .88; }
+    .btn:active { transform: scale(.97); }
+    .btn-primary  { background: var(--blue); color: #fff; }
+    .btn-gold     { background: var(--gold); color: var(--blue); }
+    .btn-outline  { background: #fff; color: var(--blue); border: 1px solid var(--blue); }
+    .btn-danger   { background: var(--danger); color: #fff; }
+    .btn-sm       { padding: .35rem .75rem; font-size: .8rem; }
+    .btn-row      { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    /* Preview */
+    #preview-box { background: #fafafa; border: 1px dashed var(--border); border-radius: 6px; padding: 1rem 1.25rem; font-size: .85rem; white-space: pre-wrap; font-family: "Courier New", monospace; line-height: 1.55; max-height: 360px; overflow-y: auto; color: #333; }
+    #preview-box.empty { color: var(--muted); font-style: italic; font-family: inherit; }
+
+    /* Tracker */
+    #request-list { display: flex; flex-direction: column; gap: .75rem; }
+    .req-item { background: var(--light); border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 6px; padding: .75rem 1rem; font-size: .85rem; }
+    .req-item.status-submitted  { border-left-color: var(--blue); }
+    .req-item.status-pending    { border-left-color: var(--gold); }
+    .req-item.status-received   { border-left-color: var(--success); }
+    .req-item.status-denied     { border-left-color: var(--danger); }
+    .req-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; }
+    .req-item-title  { font-weight: 700; color: var(--blue); }
+    .req-badge { font-size: .72rem; font-weight: 700; padding: .15rem .55rem; border-radius: 99px; white-space: nowrap; text-transform: uppercase; letter-spacing: .03em; }
+    .badge-submitted { background: #dbeafe; color: #1d4ed8; }
+    .badge-pending   { background: #fef3c7; color: #92400e; }
+    .badge-received  { background: #dcfce7; color: #166534; }
+    .badge-denied    { background: #fee2e2; color: #991b1b; }
+    .req-meta { color: var(--muted); margin-top: .3rem; }
+    .req-actions { display: flex; gap: .4rem; margin-top: .6rem; flex-wrap: wrap; }
+
+    /* Info panel */
+    .info-list { list-style: none; }
+    .info-list li { padding: .5rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; display: flex; gap: .5rem; }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li::before { content: "•"; color: var(--gold); font-weight: 900; flex-shrink: 0; }
+    .info-list a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .info-list a:hover { text-decoration: underline; }
+    .deadline-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: .75rem 1rem; font-size: .82rem; color: #78350f; margin-top: 1rem; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--blue); color: #fff; padding: .7rem 1.2rem; border-radius: 8px; font-size: .875rem; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,.2); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 999; }
+    #toast.show { opacity: 1; }
+    .empty-state { text-align: center; color: var(--muted); padding: 1.5rem 0; font-size: .875rem; }
+
+    /* AI box */
+    .ai-box { background: linear-gradient(135deg, #eef2ff 0%, #fdf4ff 100%); border: 1px solid #c7d2fe; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .ai-box-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #4f46e5; margin-bottom: .6rem; display: flex; align-items: center; gap: .4rem; }
+    .ai-box textarea { border-color: #c7d2fe; background: #fff; min-height: 72px; }
+    .ai-box textarea:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .btn-ai { background: #4f46e5; color: #fff; }
+    .btn-ai:disabled { opacity: .5; cursor: not-allowed; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .api-key-row { display: flex; gap: .5rem; align-items: center; margin-top: .6rem; }
+    .api-key-row input { font-size: .8rem; padding: .35rem .6rem; flex: 1; border-color: #c7d2fe; background: #fff; }
+    .api-key-row input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .api-key-row label { font-size: .78rem; font-weight: 600; color: #4f46e5; white-space: nowrap; margin-bottom: 0; }
   </style>
 </head>
 <body>
 <header>
-  <div class="seal">🌐</div>
+  <div class="seal">&#x1F30D;</div>
   <div>
     <h1>Global FOI Request Tool</h1>
-    <p>Draft freedom of information requests for jurisdictions around the world</p>
+    <p>Draft freedom of information / open records requests for 13 jurisdictions worldwide</p>
   </div>
 </header>
+
 <main>
   <div style="display:flex;flex-direction:column;gap:1.5rem;">
     <div class="card">
       <h2>Draft a New Request</h2>
-      <div class="jbanner">
-        <label for="jurisdiction">Jurisdiction</label>
-        <select id="jurisdiction" onchange="onJurisdictionChange()">
-          <optgroup label="United States">
-            <option value="us-federal">Federal FOIA</option>
-            <option value="us-georgia" selected>Georgia — Atlanta (Open Records Act)</option>
-            <option value="us-california">California (CPRA)</option>
-            <option value="us-newyork">New York (FOIL)</option>
-            <option value="us-texas">Texas (TPIA)</option>
-            <option value="us-florida">Florida (Sunshine Law)</option>
-          </optgroup>
-          <optgroup label="Europe &amp; United Kingdom">
-            <option value="uk">United Kingdom (FOIA 2000)</option>
-            <option value="ireland">Ireland (FOI Act 2014)</option>
-          </optgroup>
-          <optgroup label="Asia-Pacific">
-            <option value="australia">Australia (FOI Act 1982)</option>
-            <option value="newzealand">New Zealand (OIA 1982)</option>
-            <option value="india">India (RTI Act 2005)</option>
-          </optgroup>
-          <optgroup label="Americas">
-            <option value="canada">Canada (Access to Information Act)</option>
-          </optgroup>
-          <optgroup label="Africa">
-            <option value="southafrica">South Africa (PAIA 2000)</option>
-          </optgroup>
-        </select>
-        <div id="jlaw"></div>
+
+      <!-- Jurisdiction selector -->
+      <div class="j-banner">
+        <div class="j-banner-top">
+          <label for="jurisdiction">&#x1F5FA; Jurisdiction</label>
+          <select id="jurisdiction" onchange="onJurisdictionChange()">
+            <optgroup label="United States">
+              <option value="us-federal">Federal FOIA (5 U.S.C. § 552)</option>
+              <option value="us-georgia" selected>Georgia — Atlanta (Open Records Act)</option>
+              <option value="us-california">California (CPRA)</option>
+              <option value="us-newyork">New York (FOIL)</option>
+              <option value="us-texas">Texas (TPIA)</option>
+              <option value="us-florida">Florida (Sunshine Law)</option>
+            </optgroup>
+            <optgroup label="Europe &amp; United Kingdom">
+              <option value="uk">United Kingdom (FOIA 2000)</option>
+              <option value="ireland">Ireland (FOI Act 2014)</option>
+            </optgroup>
+            <optgroup label="Asia-Pacific">
+              <option value="australia">Australia (FOI Act 1982)</option>
+              <option value="newzealand">New Zealand (OIA 1982)</option>
+              <option value="india">India (RTI Act 2005)</option>
+            </optgroup>
+            <optgroup label="Americas">
+              <option value="canada">Canada (Access to Information Act)</option>
+            </optgroup>
+            <optgroup label="Africa">
+              <option value="southafrica">South Africa (PAIA 2000)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div id="j-law"></div>
+        <div class="j-quick">
+          <span style="color:rgba(255,255,255,.6);font-size:.72rem;align-self:center;">Quick pick:</span>
+          <button onclick="pickJ('us-federal')">&#x1F1FA;&#x1F1F8; US Federal</button>
+          <button onclick="pickJ('uk')">&#x1F1EC;&#x1F1E7; UK</button>
+          <button onclick="pickJ('canada')">&#x1F1E8;&#x1F1E6; Canada</button>
+          <button onclick="pickJ('australia')">&#x1F1E6;&#x1F1FA; Australia</button>
+          <button onclick="pickJ('india')">&#x1F1EE;&#x1F1F3; India</button>
+        </div>
       </div>
-      <div class="form-row"><label for="your-name">Your Full Name *</label><input type="text" id="your-name" placeholder="Jane Smith" /></div>
-      <div class="form-row"><label for="your-email">Your Email Address *</label><input type="email" id="your-email" placeholder="jane@example.com" /></div>
-      <div class="form-row"><label for="your-phone">Phone (optional)</label><input type="tel" id="your-phone" /></div>
+
+      <div class="form-row">
+        <label for="your-name">Your Full Name *</label>
+        <input type="text" id="your-name" placeholder="Jane Smith" />
+      </div>
+      <div class="form-row">
+        <label for="your-email">Your Email Address *</label>
+        <input type="email" id="your-email" placeholder="jane@example.com" />
+      </div>
+      <div class="form-row">
+        <label for="your-phone">Phone (optional)</label>
+        <input type="tel" id="your-phone" placeholder="" />
+      </div>
       <div class="form-row">
         <label for="department" id="dept-label">Public Body / Department *</label>
         <select id="department"></select>
-        <small>Select the body that likely holds the records you need.</small>
+        <small id="dept-hint">Select the body that likely holds the records you need.</small>
       </div>
+
+      <!-- AI Polish -->
       <div class="ai-box">
         <div class="ai-box-label">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
           AI Request Assistant
         </div>
         <div class="form-row" style="margin-bottom:.6rem;">
-          <textarea id="lazy-input" placeholder="Describe roughly what you want in plain language…"></textarea>
+          <textarea id="lazy-input" placeholder="Describe roughly what you want in plain language&#8230;"></textarea>
         </div>
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-ai" id="polish-btn" onclick="polishRequest()">Make it Better</button>
           <span style="font-size:.78rem;color:#6366f1;">Claude rewrites your description into precise, legally effective language.</span>
         </div>
-        <div class="api-key-row" style="margin-top:.75rem;">
+        <div class="api-key-row">
           <label for="api-key-input">Anthropic API Key</label>
-          <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" oninput="saveApiKey()" />
+          <input type="password" id="api-key-input" placeholder="sk-ant-&#8230;" autocomplete="off" oninput="saveApiKey()" />
         </div>
         <div style="font-size:.72rem;color:#6366f1;margin-top:.3rem;">Key is saved in your browser only (localStorage). Never sent anywhere except api.anthropic.com.</div>
       </div>
+
       <div class="form-row">
         <label for="records-desc">Description of Records Requested *</label>
-        <textarea id="records-desc" placeholder="Describe the records as specifically as possible — document types, date ranges, parties involved, reference numbers, etc."></textarea>
+        <textarea id="records-desc" placeholder="Describe the records as specifically as possible — include date ranges, document types, names of parties involved, reference numbers, etc."></textarea>
         <small>Tip: Be specific. The more precise your request, the faster the authority can locate records.</small>
       </div>
-      <div class="form-row"><label for="date-range">Date Range of Records</label><input type="text" id="date-range" placeholder="e.g., 1 January 2023 – 31 December 2024" /></div>
+      <div class="form-row">
+        <label for="date-range">Date Range of Records</label>
+        <input type="text" id="date-range" placeholder="e.g., 1 January 2023 to 31 December 2024" />
+      </div>
       <div class="form-row">
         <label for="format-pref">Preferred Format</label>
         <select id="format-pref">
@@ -161,9 +228,9 @@
           <option value="paper copies">Paper copies</option>
         </select>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="fee-waiver-row">
         <label for="fee-waiver">Fee Waiver Justification (optional)</label>
-        <input type="text" id="fee-waiver" />
+        <input type="text" id="fee-waiver" placeholder="" />
         <small id="fee-waiver-hint"></small>
       </div>
       <div class="btn-row">
@@ -171,16 +238,20 @@
         <button class="btn btn-outline" onclick="clearForm()">Clear Form</button>
       </div>
     </div>
+
+    <!-- Preview -->
     <div class="card">
       <h2>Request Letter Preview</h2>
       <div id="preview-box" class="empty">Fill in the form above and click "Generate Letter" to preview your request.</div>
       <div class="btn-row">
         <button class="btn btn-gold" onclick="copyLetter()">Copy Letter</button>
-        <a class="btn btn-primary" id="submit-link" href="#" target="_blank" rel="noopener">Submit Online ↗</a>
+        <a class="btn btn-primary" id="submit-link" href="#" target="_blank" rel="noopener">Submit Online &#x2197;</a>
         <button class="btn btn-outline" onclick="saveRequest()">Save to Tracker</button>
       </div>
     </div>
   </div>
+
+  <!-- Right column -->
   <div style="display:flex;flex-direction:column;gap:1.5rem;">
     <div class="card">
       <h2>My Requests</h2>
@@ -193,353 +264,606 @@
     </div>
   </div>
 </main>
+
 <div id="toast"></div>
+
 <script>
-const J = {
+// ── Jurisdiction data ──────────────────────────────────────────────────────
+
+const JURISDICTIONS = {
   "us-federal": {
-    label:"US Federal FOIA", law:"Freedom of Information Act, 5 U.S.C. § 552",
-    lawShort:"FOIA (5 U.S.C. § 552)", deptLabel:"Federal Agency / Department",
-    departments:["Department of Defense","Department of Justice","Department of State","Department of Homeland Security","Environmental Protection Agency","Federal Bureau of Investigation","Department of Health and Human Services","Department of Veterans Affairs","Department of Education","Department of Transportation","Department of the Treasury","Other Federal Agency / Component"],
-    feeWaiverHint:"e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
-    submitUrl:"https://www.foia.gov/", submitLabel:"Submit at FOIA.gov ↗",
-    infoTitle:"US Federal FOIA — Key Facts",
-    facts:["Agencies have <strong>20 business days</strong> to respond.","You may request <strong>expedited processing</strong> if there is an urgent need.","Fee waivers available for news media, educational institutions, and public-interest requests.","Common exemptions: national security, law enforcement, deliberative process, personal privacy, trade secrets.","You can appeal a denial within the agency, then to federal district court.",`Submit: <a href="https://www.foia.gov/" target="_blank" rel="noopener">foia.gov</a>`,`DOJ guide: <a href="https://www.justice.gov/oip" target="_blank" rel="noopener">justice.gov/oip</a>`],
-    deadlineNote:"If no determination in 20 business days, you may file suit without exhausting administrative appeals.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI respectfully request a waiver of all fees pursuant to 5 U.S.C. § 552(a)(4)(A)(iii). ${d.waiver}. Disclosure is in the public interest.\n`:"";
-      return `${td()}\n\nFOIA Request Officer\n${d.dept}\nUnited States Government\n\nRE: Freedom of Information Act Request — 5 U.S.C. § 552\n\nDear FOIA Officer:\n\nPursuant to the Freedom of Information Act, 5 U.S.C. § 552, I hereby request access to and copies of the following agency records:\n\n${d.desc}${dr}\n\nI request responsive records in ${d.format}.\n${wp}\nIf any records are withheld, please identify each withheld record, the exemption(s) claimed, and why the exemption applies. Please segregate and release all non-exempt portions.\n\nPlease acknowledge receipt within 20 business days as required by 5 U.S.C. § 552(a)(6)(A)(i).\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "US Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "Federal Agency / Department",
+    departments: ["Department of Defense","Department of Justice","Department of State","Department of Homeland Security","Environmental Protection Agency","Federal Bureau of Investigation","Department of Health and Human Services","Department of Veterans Affairs","Department of Education","Department of Transportation","Department of the Treasury","Other Federal Agency / Component"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.foia.gov/",
+    submitLabel: "Submit at FOIA.gov \u2197",
+    infoTitle: "US Federal FOIA \u2014 Key Facts",
+    facts: [
+      "Agencies have <strong>20 business days</strong> to respond.",
+      "You may request <strong>expedited processing</strong> if there is an urgent need.",
+      "Fee waivers are available for news media, educational institutions, and public-interest requests.",
+      "Common exemptions: national security, law enforcement, deliberative process, personal privacy, trade secrets.",
+      "Appeal a denial within the agency first, then to federal district court.",
+      "Submit requests online at <a href='https://www.foia.gov/' target='_blank' rel='noopener'>foia.gov</a>.",
+      "DOJ guide: <a href='https://www.justice.gov/oip/doj-guide-freedom-information-act' target='_blank' rel='noopener'>justice.gov/oip</a>."
+    ],
+    deadlineNote: "If you don't receive a determination within 20 business days, you may file suit without exhausting administrative appeals.",
+    letterFn: "usFederal"
   },
   "us-georgia": {
-    label:"Georgia Open Records Act", law:"Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq.",
-    lawShort:"O.C.G.A. § 50-18-70 et seq.", deptLabel:"City Department",
-    departments:["General Counsel / Department of Law","Department of Procurement","Atlanta Police Department","Atlanta Fire Rescue Department","Department of Public Works","Department of Planning","Department of Finance","Mayor's Office","City Council","Department of Parks & Recreation","Atlanta Watershed Management","Other / Unknown"],
-    feeWaiverHint:"e.g., I am a journalist; disclosure is in the public interest",
-    submitUrl:"https://foia.atlantaga.gov/", submitLabel:"Submit at foia.atlantaga.gov ↗",
-    infoTitle:"Georgia Open Records — Key Facts",
-    facts:["Agencies must <strong>acknowledge</strong> requests within <strong>3 business days</strong>.","Records must be produced within a <strong>reasonable time</strong> (typically ~3 business days for simple requests).","Requesters do <strong>not</strong> need to state a reason.","Some records are exempt (e.g., ongoing investigations, personal medical info, trade secrets).",`Submit online: <a href="https://foia.atlantaga.gov/" target="_blank" rel="noopener">foia.atlantaga.gov</a>`,`Procurement: <a href="mailto:openrecords-procurement@atlantaga.gov">openrecords-procurement@atlantaga.gov</a>`,`GA AG guide: <a href="https://law.georgia.gov/key-issues/open-government/how-make-open-records-request" target="_blank" rel="noopener">law.georgia.gov</a>`],
-    deadlineNote:"If you haven't heard back in 3 business days, follow up with the department's records custodian.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI respectfully request a waiver of any fees. ${d.waiver}. Disclosure serves the public interest.\n`:"";
-      return `${td()}\n\nOpen Records Custodian\n${d.dept}\nCity of Atlanta, Georgia\n\nRE: Open Records Request Pursuant to O.C.G.A. § 50-18-70 et seq.\n\nDear Open Records Custodian:\n\nPursuant to the Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq., I hereby request access to and copies of the following public records maintained by the ${d.dept}:\n\n${d.desc}${dr}\n\nI request that responsive records be produced in ${d.format}.\n${wp}\nIf any portion of this request is denied, please provide a written explanation citing the specific statutory exemption(s) relied upon and redact only the exempt portions rather than withholding entire documents.\n\nUnder O.C.G.A. § 50-18-72, non-exempt records must be provided. Please confirm receipt within three (3) business days as required by Georgia law.\n\nThank you for your prompt attention to this matter.\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Georgia Open Records Act",
+    law: "Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq.",
+    deptLabel: "City Department",
+    departments: ["General Counsel / Department of Law","Department of Procurement","Atlanta Police Department","Atlanta Fire Rescue Department","Department of Public Works","Department of Planning","Department of Finance","Mayor's Office","City Council","Department of Parks & Recreation","Atlanta Watershed Management","Other / Unknown"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest",
+    submitUrl: "https://foia.atlantaga.gov/",
+    submitLabel: "Submit at foia.atlantaga.gov \u2197",
+    infoTitle: "Georgia Open Records \u2014 Key Facts",
+    facts: [
+      "Agencies must <strong>acknowledge</strong> requests within <strong>3 business days</strong>.",
+      "Records must be produced within a reasonable time (typically ~3 business days for simple requests).",
+      "Requesters do <strong>not</strong> need to state a reason.",
+      "Some records are exempt (e.g., ongoing investigations, personal medical info, trade secrets).",
+      "Submit online: <a href='https://foia.atlantaga.gov/' target='_blank' rel='noopener'>foia.atlantaga.gov</a>.",
+      "Procurement records: <a href='mailto:openrecords-procurement@atlantaga.gov'>openrecords-procurement@atlantaga.gov</a>.",
+      "Georgia AG guide: <a href='https://law.georgia.gov/key-issues/open-government/how-make-open-records-request' target='_blank' rel='noopener'>law.georgia.gov</a>."
+    ],
+    deadlineNote: "If you haven't heard back in 3 business days, follow up with the department's open records custodian.",
+    letterFn: "georgia"
   },
   "us-california": {
-    label:"California CPRA", law:"California Public Records Act, Cal. Gov. Code § 7920 et seq.",
-    lawShort:"Cal. Gov. Code § 7920 et seq.", deptLabel:"State / Local Agency",
-    departments:["California Highway Patrol","Department of Justice (AG's Office)","Department of Public Health","Department of Motor Vehicles","Board of Education","City of Los Angeles","City of San Francisco","City of San Diego","County of Los Angeles","Other Agency"],
-    feeWaiverHint:"e.g., I am a journalist; disclosure serves the public interest",
-    submitUrl:"https://oag.ca.gov/open-government", submitLabel:"CA AG Open Gov ↗",
-    infoTitle:"California CPRA — Key Facts",
-    facts:["Agencies must respond within <strong>10 calendar days</strong> (extendable by 14 days).","No need to state your reason for requesting records.","Agencies must provide copies or allow inspection; electronic copies preferred.","Common exemptions: law enforcement, litigation privilege, personal privacy.","Denial may be challenged by petition for writ of mandate in superior court.",`CA DOJ guide: <a href="https://oag.ca.gov/open-government" target="_blank" rel="noopener">oag.ca.gov/open-government</a>`],
-    deadlineNote:"If no response in 10 calendar days (or 24 with extension), the request may be treated as denied.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of any fees. ${d.waiver}.\n`:"";
-      return `${td()}\n\nPublic Records Officer\n${d.dept}\nState of California\n\nRE: California Public Records Act Request — Cal. Gov. Code § 7920 et seq.\n\nDear Public Records Officer:\n\nPursuant to the California Public Records Act, California Government Code § 7920 et seq., I hereby request access to and copies of the following public records:\n\n${d.desc}${dr}\n\nI request that responsive records be provided in ${d.format}.\n${wp}\nIf any records are withheld, please identify each record withheld and the specific exemption claimed, and disclose any reasonably segregable non-exempt information.\n\nPlease respond within 10 calendar days as required by Cal. Gov. Code § 7922.535.\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "California CPRA",
+    law: "California Public Records Act, Cal. Gov. Code § 7920 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["California Highway Patrol","Department of Justice (AG's Office)","Department of Public Health","Department of Motor Vehicles","California Department of Education","City of Los Angeles","City of San Francisco","City of San Diego","County of Los Angeles","Other Agency"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://oag.ca.gov/open-government",
+    submitLabel: "CA DOJ Open Gov \u2197",
+    infoTitle: "California CPRA \u2014 Key Facts",
+    facts: [
+      "Agencies must respond within <strong>10 calendar days</strong> (extendable by 14 days).",
+      "No need to state your reason for requesting records.",
+      "Agencies must provide copies or allow inspection; electronic copies are preferred.",
+      "Common exemptions: law enforcement, litigation privilege, personal privacy, deliberative process.",
+      "Denial may be challenged in superior court by petition for writ of mandate.",
+      "CA DOJ guide: <a href='https://oag.ca.gov/open-government' target='_blank' rel='noopener'>oag.ca.gov/open-government</a>."
+    ],
+    deadlineNote: "If no response in 10 calendar days (or 24 days with extension), the request may be treated as denied.",
+    letterFn: "california"
   },
   "us-newyork": {
-    label:"New York FOIL", law:"Freedom of Information Law, N.Y. Pub. Off. Law § 84 et seq.",
-    lawShort:"N.Y. Pub. Off. Law § 84 et seq.", deptLabel:"State / Local Agency",
-    departments:["New York State Police","Department of Health","Department of Education","Department of Environmental Conservation","City of New York (FOIL Officer)","NYC Police Department","NYC Department of Buildings","Other Agency"],
-    feeWaiverHint:"e.g., I am a journalist; public interest outweighs any privacy considerations",
-    submitUrl:"https://www.dos.ny.gov/coog/foil_article.html", submitLabel:"NY FOIL info ↗",
-    infoTitle:"New York FOIL — Key Facts",
-    facts:["Agencies must <strong>acknowledge</strong> within <strong>5 business days</strong>.","Full response required within <strong>20 business days</strong>.","No reason required; any person may submit.","Common exemptions: personal privacy, law enforcement, trade secrets, inter-agency materials.","You can appeal a denial to the agency head, then by Article 78 proceeding in court.",`Committee on Open Government: <a href="https://www.dos.ny.gov/coog/" target="_blank" rel="noopener">dos.ny.gov/coog</a>`],
-    deadlineNote:"If no acknowledgement in 5 business days or no response in 20 business days, you may appeal.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver or reduction of fees. ${d.waiver}.\n`:"";
-      return `${td()}\n\nRecords Access Officer\n${d.dept}\nState of New York\n\nRE: Freedom of Information Law Request — N.Y. Pub. Off. Law § 84 et seq.\n\nDear Records Access Officer:\n\nPursuant to the New York Freedom of Information Law (FOIL), Public Officers Law § 84 et seq., I hereby request access to and copies of the following records:\n\n${d.desc}${dr}\n\nI request that responsive records be provided in ${d.format}.\n${wp}\nIf any records are withheld, please provide a written explanation of the specific statutory exemption(s) relied upon. Please disclose any reasonably segregable portions.\n\nUnder Pub. Off. Law § 89(3), please acknowledge this request within 5 business days and provide a full response within 20 business days.\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "New York FOIL",
+    law: "Freedom of Information Law, N.Y. Pub. Off. Law § 84 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["New York State Police","Department of Health","Department of Education","Department of Environmental Conservation","City of New York (FOIL Officer)","NYC Police Department","NYC Department of Buildings","Other Agency"],
+    feeWaiverHint: "e.g., I am a journalist; public interest outweighs privacy considerations",
+    submitUrl: "https://www.dos.ny.gov/coog/foil_article.html",
+    submitLabel: "NY FOIL info \u2197",
+    infoTitle: "New York FOIL \u2014 Key Facts",
+    facts: [
+      "Agencies must <strong>acknowledge</strong> within <strong>5 business days</strong>.",
+      "Full response required within <strong>20 business days</strong>.",
+      "No reason required; any person may submit.",
+      "Common exemptions: personal privacy, law enforcement, trade secrets, inter-agency materials.",
+      "Appeal a denial to the agency head, then commence an Article 78 proceeding in court.",
+      "Committee on Open Government: <a href='https://www.dos.ny.gov/coog/' target='_blank' rel='noopener'>dos.ny.gov/coog</a>."
+    ],
+    deadlineNote: "If no acknowledgement in 5 business days or no full response in 20 business days, you may appeal.",
+    letterFn: "newYork"
   },
   "us-texas": {
-    label:"Texas TPIA", law:"Texas Public Information Act, Tex. Gov't Code Ch. 552",
-    lawShort:"Tex. Gov't Code Ch. 552", deptLabel:"Governmental Body",
-    departments:["Texas Department of Public Safety","Texas Health and Human Services","Texas Education Agency","Texas Department of Transportation","City of Houston","City of Dallas","City of Austin","City of San Antonio","Other Governmental Body"],
-    feeWaiverHint:"e.g., I am a journalist; disclosure is in the public interest",
-    submitUrl:"https://www.texasattorneygeneral.gov/open-government/", submitLabel:"TX AG Open Gov ↗",
-    infoTitle:"Texas TPIA — Key Facts",
-    facts:["Agencies must respond <strong>promptly</strong>; 10 business days is the standard.","Requestors must receive a cost estimate within 10 business days.","No reason required to make a request.","Common exemptions: law enforcement, attorney-client privilege, personnel files.","The AG's office issues rulings on whether records may be withheld.",`TX AG Open Government: <a href="https://www.texasattorneygeneral.gov/open-government/" target="_blank" rel="noopener">texasattorneygeneral.gov</a>`],
-    deadlineNote:"If no response within 10 business days, contact the agency's public information officer.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of any fees. ${d.waiver}. Disclosure serves the public interest.\n`:"";
-      return `${td()}\n\nPublic Information Officer\n${d.dept}\nState of Texas\n\nRE: Public Information Act Request — Tex. Gov't Code Ch. 552\n\nDear Public Information Officer:\n\nPursuant to the Texas Public Information Act, Texas Government Code Chapter 552, I hereby request access to and copies of the following public information:\n\n${d.desc}${dr}\n\nI request that responsive records be provided in ${d.format}.\n${wp}\nPlease respond promptly and within 10 business days as provided by Tex. Gov't Code § 552.228. If any information is withheld, please identify the specific exception under Chapter 552 and seek a ruling from the Attorney General as required.\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Texas TPIA",
+    law: "Texas Public Information Act, Tex. Gov't Code Ch. 552",
+    deptLabel: "Governmental Body",
+    departments: ["Texas Department of Public Safety","Texas Health and Human Services","Texas Education Agency","Texas Department of Transportation","City of Houston","City of Dallas","City of Austin","City of San Antonio","Other Governmental Body"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest",
+    submitUrl: "https://www.texasattorneygeneral.gov/open-government/",
+    submitLabel: "TX AG Open Gov \u2197",
+    infoTitle: "Texas TPIA \u2014 Key Facts",
+    facts: [
+      "Agencies must respond <strong>promptly</strong>; 10 business days is the standard.",
+      "Requesters must receive a cost estimate within 10 business days.",
+      "No reason required to make a request.",
+      "Common exemptions: law enforcement, attorney-client privilege, personnel files.",
+      "The AG's office issues rulings on whether records may be withheld.",
+      "TX AG Open Government: <a href='https://www.texasattorneygeneral.gov/open-government/' target='_blank' rel='noopener'>texasattorneygeneral.gov</a>."
+    ],
+    deadlineNote: "If no response within 10 business days, contact the agency's public information officer.",
+    letterFn: "texas"
   },
   "us-florida": {
-    label:"Florida Sunshine Law", law:"Florida Public Records Law, Ch. 119, Fla. Stat.",
-    lawShort:"Ch. 119, Fla. Stat.", deptLabel:"Agency / Public Body",
-    departments:["Florida Department of Law Enforcement","Florida Department of Health","Florida Department of Education","Florida Department of Transportation","City of Miami","City of Orlando","City of Tampa","City of Jacksonville","Other Agency"],
-    feeWaiverHint:"e.g., I am a journalist acting in the public interest",
-    submitUrl:"https://www.myfloridalegal.com/", submitLabel:"FL AG Office ↗",
-    infoTitle:"Florida Public Records — Key Facts",
-    facts:["Florida has one of the broadest public records laws in the US.","Agencies must respond <strong>promptly</strong>; no specific deadline, but unreasonable delay is unlawful.","Any person may request records; no reason required.","Copies may be provided electronically at no charge for small requests.","Denial may be challenged in circuit court; prevailing party may recover attorney fees.",`FL AG: <a href="https://www.myfloridalegal.com/" target="_blank" rel="noopener">myfloridalegal.com</a>`],
-    deadlineNote:"Florida law requires 'prompt' production. If the agency is unreasonably slow, send a follow-up citing § 119.07(1)(a).",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range of records: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver or reduction of any fees. ${d.waiver}.\n`:"";
-      return `${td()}\n\nCustodian of Public Records\n${d.dept}\nState of Florida\n\nRE: Public Records Request — Ch. 119, Fla. Stat.\n\nDear Custodian of Public Records:\n\nPursuant to Chapter 119, Florida Statutes (Florida's Public Records Law), I hereby request access to and copies of the following public records:\n\n${d.desc}${dr}\n\nI request that responsive records be provided in ${d.format}.\n${wp}\nPlease provide prompt access as required by § 119.07(1)(a), Fla. Stat. If any records are exempt, please cite the specific statutory exemption and provide all non-exempt portions.\n\nSincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Florida Sunshine Law",
+    law: "Florida Public Records Law, Ch. 119, Fla. Stat.",
+    deptLabel: "Agency / Public Body",
+    departments: ["Florida Department of Law Enforcement","Florida Department of Health","Florida Department of Education","Florida Department of Transportation","City of Miami","City of Orlando","City of Tampa","City of Jacksonville","Other Agency"],
+    feeWaiverHint: "e.g., I am a journalist acting in the public interest",
+    submitUrl: "https://www.myfloridalegal.com/",
+    submitLabel: "FL AG Office \u2197",
+    infoTitle: "Florida Public Records \u2014 Key Facts",
+    facts: [
+      "Florida has one of the <strong>broadest</strong> public records laws in the US.",
+      "Agencies must respond <strong>promptly</strong>; no fixed deadline, but unreasonable delay is unlawful.",
+      "Any person may request records; no reason required.",
+      "Copies may be provided electronically at no charge for small requests.",
+      "Denial may be challenged in circuit court; prevailing requesters may recover attorney fees.",
+      "FL AG guide: <a href='https://www.myfloridalegal.com/' target='_blank' rel='noopener'>myfloridalegal.com</a>."
+    ],
+    deadlineNote: "Florida law requires 'prompt' production. If the agency is unreasonably slow, send a follow-up citing § 119.07(1)(a).",
+    letterFn: "florida"
   },
   "uk": {
-    label:"United Kingdom FOIA 2000", law:"Freedom of Information Act 2000 (UK)",
-    lawShort:"Freedom of Information Act 2000", deptLabel:"Public Authority",
-    departments:["Home Office","Ministry of Justice","Department of Health and Social Care","Department for Education","HM Treasury","Cabinet Office","Department for Transport","Foreign, Commonwealth & Development Office","Metropolitan Police Service","NHS England","Local Council","Other Public Authority"],
-    feeWaiverHint:"The UK FOIA does not provide for fee waivers; a fee notice may be issued for extensive requests",
-    submitUrl:"https://www.whatdotheyknow.com/", submitLabel:"WhatDoTheyKnow ↗",
-    infoTitle:"UK FOIA 2000 — Key Facts",
-    facts:["Public authorities must respond within <strong>20 working days</strong>.","Requesters do <strong>not</strong> need to state a reason.","Authorities must confirm or deny whether they hold information.","Common exemptions: national security, personal data, law enforcement, commercial interests, policy formulation.","You can request an internal review, then complain to the Information Commissioner's Office (ICO).",`ICO guidance: <a href="https://ico.org.uk/for-the-public/freedom-of-information/" target="_blank" rel="noopener">ico.org.uk</a>`,`Submit via: <a href="https://www.whatdotheyknow.com/" target="_blank" rel="noopener">WhatDoTheyKnow.com</a>`],
-    deadlineNote:"If no response within 20 working days, you can request an internal review and then escalate to the ICO.",
-    letter: function(d){
-      const ph=d.phone?`\nTelephone: ${d.phone}`:"", dr=d.dates?`\nDate range of information: ${d.dates}`:"";
-      return `${td()}\n\nFreedom of Information Officer\n${d.dept}\n\nDear Freedom of Information Officer,\n\nFreedom of Information Act 2000 — Request for Information\n\nI am writing to request information under the Freedom of Information Act 2000.\n\nPlease provide the following information held by ${d.dept}:\n\n${d.desc}${dr}\n\nI would prefer to receive the information in ${d.format}.\n\nIf you are not the appropriate authority, please forward this request or advise me of the correct contact.\n\nPlease confirm receipt and provide a response within 20 working days as required under Section 10 of the Freedom of Information Act 2000. If my request is refused, please provide reasons and information about the internal review process and the right to complain to the Information Commissioner's Office (ICO).\n\nYours faithfully,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "United Kingdom FOIA 2000",
+    law: "Freedom of Information Act 2000 (UK)",
+    deptLabel: "Public Authority",
+    departments: ["Home Office","Ministry of Justice","Department of Health and Social Care","Department for Education","HM Treasury","Cabinet Office","Department for Transport","Foreign, Commonwealth & Development Office","Metropolitan Police Service","NHS England","Local Council","Other Public Authority"],
+    feeWaiverHint: "The FOIA does not provide fee waivers, but public interest tests may apply",
+    submitUrl: "https://www.whatdotheyknow.com/",
+    submitLabel: "WhatDoTheyKnow \u2197",
+    infoTitle: "UK FOIA 2000 \u2014 Key Facts",
+    facts: [
+      "Public authorities must respond within <strong>20 working days</strong>.",
+      "Requesters do <strong>not</strong> need to state a reason.",
+      "Authorities must confirm or deny whether they hold the information.",
+      "Common exemptions: national security, personal data, law enforcement, commercial interests.",
+      "Internal review first, then escalate to the <strong>Information Commissioner's Office (ICO)</strong>.",
+      "ICO guidance: <a href='https://ico.org.uk/for-the-public/freedom-of-information/' target='_blank' rel='noopener'>ico.org.uk</a>.",
+      "Submit via: <a href='https://www.whatdotheyknow.com/' target='_blank' rel='noopener'>WhatDoTheyKnow.com</a>."
+    ],
+    deadlineNote: "If no response within 20 working days, request an internal review. If still unsatisfied, complain to the ICO.",
+    letterFn: "uk"
   },
   "ireland": {
-    label:"Ireland FOI Act 2014", law:"Freedom of Information Act 2014 (Ireland)",
-    lawShort:"Freedom of Information Act 2014", deptLabel:"FOI Body",
-    departments:["Department of Health","Department of Justice","Department of Education","Department of Finance","An Garda Síochána","HSE (Health Service Executive)","Revenue Commissioners","Local Authority","Other FOI Body"],
-    feeWaiverHint:"e.g., I am a journalist; disclosure is in the public interest",
-    submitUrl:"https://www.oic.ie/", submitLabel:"Office of the Info Commissioner ↗",
-    infoTitle:"Ireland FOI 2014 — Key Facts",
-    facts:["FOI bodies must respond within <strong>4 weeks (20 working days)</strong>.","A search, retrieval and copying fee may apply (waived for personal records).","You can apply for an internal review within 4 weeks of a decision.","Then appeal to the Office of the Information Commissioner (OIC).","Common exemptions: government deliberations, law enforcement, commercial sensitivity.",`OIC: <a href="https://www.oic.ie/" target="_blank" rel="noopener">oic.ie</a>`],
-    deadlineNote:"If no response within 4 weeks, this is deemed a refusal and you can request an internal review.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of any search and retrieval fees. ${d.waiver}.\n`:"";
-      return `${td()}\n\nFOI Officer\n${d.dept}\n\nDear FOI Officer,\n\nFreedom of Information Act 2014 — Request for Records\n\nI am making a request for records under the Freedom of Information Act 2014.\n\nPlease provide the following records held by ${d.dept}:\n\n${d.desc}${dr}\n\nI request that records be provided in ${d.format}.\n${wp}\nPlease acknowledge receipt and provide a decision within 4 weeks as required by Section 13 of the Freedom of Information Act 2014. If you refuse access to any record, please provide reasons in writing, cite the specific exemption relied upon, and inform me of my right to request an internal review.\n\nYours sincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Ireland FOI Act 2014",
+    law: "Freedom of Information Act 2014 (Ireland)",
+    deptLabel: "FOI Body",
+    departments: ["Department of Health","Department of Justice","Department of Education","Department of Finance","An Garda Siochana","HSE (Health Service Executive)","Revenue Commissioners","Local Authority","Other FOI Body"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest",
+    submitUrl: "https://www.oic.ie/",
+    submitLabel: "OIC guidance \u2197",
+    infoTitle: "Ireland FOI 2014 \u2014 Key Facts",
+    facts: [
+      "FOI bodies must respond within <strong>4 weeks (20 working days)</strong>.",
+      "A search, retrieval and copying fee may apply (waived for personal records).",
+      "Apply for an internal review within 4 weeks of a decision.",
+      "Then appeal to the <strong>Office of the Information Commissioner (OIC)</strong>.",
+      "Common exemptions: government deliberations, law enforcement, commercial sensitivity.",
+      "OIC guidance: <a href='https://www.oic.ie/' target='_blank' rel='noopener'>oic.ie</a>."
+    ],
+    deadlineNote: "If no response within 4 weeks, this is deemed a refusal — you can immediately request an internal review.",
+    letterFn: "ireland"
   },
   "australia": {
-    label:"Australia FOI Act 1982", law:"Freedom of Information Act 1982 (Cth)",
-    lawShort:"FOI Act 1982 (Cth)", deptLabel:"Commonwealth Agency",
-    departments:["Australian Federal Police","Department of Home Affairs","Department of Health","Department of Education","Australian Taxation Office","Department of Social Services","Department of Defence","Department of Infrastructure","Department of Foreign Affairs and Trade","Other Commonwealth Agency"],
-    feeWaiverHint:"e.g., access is in the general public interest; or financial hardship applies",
-    submitUrl:"https://www.oaic.gov.au/freedom-of-information", submitLabel:"OAIC guidance ↗",
-    infoTitle:"Australia FOI Act — Key Facts",
-    facts:["Agencies must respond within <strong>30 calendar days</strong>.","No application fee for personal information requests.","A processing charge may apply for non-personal requests (first 5 hours free).","You can request internal review, then apply to the Office of the Australian Information Commissioner (OAIC).","Common exemptions: Cabinet documents, national security, deliberative process, personal privacy.",`OAIC: <a href="https://www.oaic.gov.au/freedom-of-information" target="_blank" rel="noopener">oaic.gov.au</a>`],
-    deadlineNote:"If no response within 30 days, the request is deemed refused and you may apply to the OAIC.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of any applicable charges. ${d.waiver}. Release is in the public interest.\n`:"";
-      return `${td()}\n\nFOI Coordinator\n${d.dept}\nAustralian Government\n\nDear FOI Coordinator,\n\nFreedom of Information Act 1982 — Request for Access to Documents\n\nI am writing to request access to documents under the Freedom of Information Act 1982 (Cth).\n\nPlease provide access to the following documents held by ${d.dept}:\n\n${d.desc}${dr}\n\nI request access in ${d.format}.\n${wp}\nPlease acknowledge receipt and provide a decision within 30 days as required by section 15 of the FOI Act. If you refuse access to any document, please advise me of my rights to seek internal review and then review by the OAIC.\n\nYours sincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Australia FOI Act 1982",
+    law: "Freedom of Information Act 1982 (Cth)",
+    deptLabel: "Commonwealth Agency",
+    departments: ["Australian Federal Police","Department of Home Affairs","Department of Health and Aged Care","Department of Education","Australian Taxation Office","Department of Social Services","Department of Defence","Department of Infrastructure","Department of Foreign Affairs and Trade","Other Commonwealth Agency"],
+    feeWaiverHint: "e.g., access is in the general public interest; or financial hardship applies",
+    submitUrl: "https://www.oaic.gov.au/freedom-of-information",
+    submitLabel: "OAIC guidance \u2197",
+    infoTitle: "Australia FOI Act \u2014 Key Facts",
+    facts: [
+      "Agencies must respond within <strong>30 calendar days</strong>.",
+      "No application fee for personal information; processing charges may apply for others (first 5 hours free).",
+      "Request an internal review, then apply to the <strong>Office of the Australian Information Commissioner (OAIC)</strong>.",
+      "Common exemptions: Cabinet documents, national security, deliberative process, personal privacy.",
+      "OAIC guidance: <a href='https://www.oaic.gov.au/freedom-of-information' target='_blank' rel='noopener'>oaic.gov.au</a>."
+    ],
+    deadlineNote: "If no response within 30 days, the request is deemed refused — apply to the OAIC.",
+    letterFn: "australia"
   },
   "newzealand": {
-    label:"New Zealand OIA 1982", law:"Official Information Act 1982 (New Zealand)",
-    lawShort:"Official Information Act 1982", deptLabel:"Minister / Agency",
-    departments:["New Zealand Police","Ministry of Health","Ministry of Education","Inland Revenue Department","Ministry of Justice","Ministry of Foreign Affairs and Trade","Department of Corrections","Ministry of Transport","Other Agency or Minister"],
-    feeWaiverHint:"e.g., public interest; or waiver on grounds of financial hardship",
-    submitUrl:"https://www.ombudsman.parliament.nz/", submitLabel:"NZ Ombudsman ↗",
-    infoTitle:"NZ Official Information Act — Key Facts",
-    facts:["Agencies must respond <strong>as soon as reasonably practicable</strong>, and no later than <strong>20 working days</strong>.","No reason required; requests can be made by anyone.","Agencies may charge for requests that take significant time.","You can complain to the Ombudsman if dissatisfied.","Common reasons to withhold: national security, commercial sensitivity, personal privacy.",`NZ Ombudsman: <a href="https://www.ombudsman.parliament.nz/" target="_blank" rel="noopener">ombudsman.parliament.nz</a>`],
-    deadlineNote:"If no response within 20 working days, or if you consider the refusal unreasonable, complain to the Ombudsman.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of any charges. ${d.waiver}.\n`:"";
-      return `${td()}\n\nOfficial Information Officer\n${d.dept}\nNew Zealand Government\n\nDear Official Information Officer,\n\nOfficial Information Act 1982 — Request for Information\n\nI am writing to request information under the Official Information Act 1982.\n\nPlease provide the following information held by ${d.dept}:\n\n${d.desc}${dr}\n\nI request that the information be provided in ${d.format}.\n${wp}\nPlease acknowledge receipt and respond as soon as reasonably practicable, and in any case within 20 working days, as required under section 15 of the Official Information Act 1982. If you refuse to provide the information, please state your reasons in writing and advise me of my right to complain to the Ombudsman.\n\nYours faithfully,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "New Zealand OIA 1982",
+    law: "Official Information Act 1982 (New Zealand)",
+    deptLabel: "Minister / Agency",
+    departments: ["New Zealand Police","Ministry of Health","Ministry of Education","Inland Revenue Department","Ministry of Justice","Ministry of Foreign Affairs and Trade","Department of Corrections","Ministry of Transport","Other Agency or Minister"],
+    feeWaiverHint: "e.g., public interest; or waiver on grounds of financial hardship",
+    submitUrl: "https://www.ombudsman.parliament.nz/make-complaint/official-information",
+    submitLabel: "NZ Ombudsman \u2197",
+    infoTitle: "NZ Official Information Act \u2014 Key Facts",
+    facts: [
+      "Agencies must respond as soon as reasonably practicable, and <strong>no later than 20 working days</strong>.",
+      "No reason required; requests can be made by anyone.",
+      "Agencies may charge for requests that require significant time.",
+      "Complain to the <strong>Ombudsman</strong> if a refusal is unreasonable.",
+      "Common reasons to withhold: national security, commercial sensitivity, personal privacy.",
+      "NZ Ombudsman: <a href='https://www.ombudsman.parliament.nz/' target='_blank' rel='noopener'>ombudsman.parliament.nz</a>."
+    ],
+    deadlineNote: "If no response within 20 working days, or if a refusal seems unreasonable, complain to the Ombudsman.",
+    letterFn: "newZealand"
   },
   "india": {
-    label:"India RTI Act 2005", law:"Right to Information Act 2005 (India)",
-    lawShort:"RTI Act 2005", deptLabel:"Public Authority",
-    departments:["Ministry of Home Affairs","Ministry of Health and Family Welfare","Ministry of Education","Central Bureau of Investigation","Income Tax Department","Ministry of Finance","Ministry of Railways","Ministry of Road Transport and Highways","State Government Department","Other Public Authority"],
-    feeWaiverHint:"BPL card holders are exempt from fees; others pay ₹10 application fee",
-    submitUrl:"https://rtionline.gov.in/", submitLabel:"Submit at rtionline.gov.in ↗",
-    infoTitle:"India RTI Act 2005 — Key Facts",
-    facts:["Public Information Officer must respond within <strong>30 days</strong> (21 days for life or liberty matters).","Application fee is <strong>₹10</strong> (BPL card holders are exempt).","If denied, first appeal to a senior officer in the same authority.","Second appeal/complaint to the Central/State Information Commission.","Information can be sought in any official language.",`RTI Online: <a href="https://rtionline.gov.in/" target="_blank" rel="noopener">rtionline.gov.in</a>`,`CIC: <a href="https://cic.gov.in/" target="_blank" rel="noopener">cic.gov.in</a>`],
-    deadlineNote:"No response in 30 days is treated as a refusal — file a first appeal within 30 days of that deadline.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      return `${td()}\n\nThe Public Information Officer\n${d.dept}\nGovernment of India\n\nSubject: Application under the Right to Information Act, 2005\n\nDear Sir/Madam,\n\nI wish to seek information under Section 6(1) of the Right to Information Act, 2005.\n\nI request the following information from ${d.dept}:\n\n${d.desc}${dr}\n\nI request that the information be provided in ${d.format}, if available.\n\nI am enclosing the prescribed application fee of ₹10 (or attaching proof of BPL card for fee exemption).\n\nPlease provide the information within 30 days as mandated under Section 7 of the RTI Act, 2005. In case of refusal, please provide the grounds in writing and advise me of the appellate authority under Section 19 of the Act.\n\nYours faithfully,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "India RTI Act 2005",
+    law: "Right to Information Act 2005 (India)",
+    deptLabel: "Public Authority",
+    departments: ["Ministry of Home Affairs","Ministry of Health and Family Welfare","Ministry of Education","Central Bureau of Investigation","Income Tax Department","Ministry of Finance","Ministry of Railways","Ministry of Road Transport and Highways","State Government Department","Other Public Authority"],
+    feeWaiverHint: "BPL card holders are exempt from fees; others pay Rs. 10 application fee",
+    submitUrl: "https://rtionline.gov.in/",
+    submitLabel: "Submit at rtionline.gov.in \u2197",
+    infoTitle: "India RTI Act 2005 \u2014 Key Facts",
+    facts: [
+      "Public Information Officer must respond within <strong>30 days</strong> (21 days for life or liberty matters).",
+      "Application fee is <strong>Rs. 10</strong>; BPL card holders are exempt.",
+      "First appeal to a senior officer within the same authority.",
+      "Second appeal / complaint to the <strong>Central/State Information Commission</strong>.",
+      "Information can be sought in any official language.",
+      "RTI Online portal: <a href='https://rtionline.gov.in/' target='_blank' rel='noopener'>rtionline.gov.in</a>.",
+      "CIC: <a href='https://cic.gov.in/' target='_blank' rel='noopener'>cic.gov.in</a>."
+    ],
+    deadlineNote: "No response in 30 days is treated as a refusal — file a first appeal within 30 days of that deadline.",
+    letterFn: "india"
   },
   "canada": {
-    label:"Canada Access to Information Act", law:"Access to Information Act, R.S.C. 1985, c. A-1",
-    lawShort:"Access to Information Act (R.S.C. 1985, c. A-1)", deptLabel:"Federal Institution",
-    departments:["Royal Canadian Mounted Police","Health Canada","Immigration, Refugees and Citizenship Canada","Canada Revenue Agency","Department of National Defence","Global Affairs Canada","Public Safety Canada","Employment and Social Development Canada","Other Federal Institution"],
-    feeWaiverHint:"e.g., waiver in the public interest; or financial hardship",
-    submitUrl:"https://atip-aiprp.tbs-sct.gc.ca/", submitLabel:"ATIP Online ↗",
-    infoTitle:"Canada Access to Information — Key Facts",
-    facts:["Federal institutions have <strong>30 calendar days</strong> to respond (extendable).","Application fee is <strong>$5 CAD</strong>; search, preparation, and reproduction fees may also apply.","Requesters can complain to the Information Commissioner of Canada.","Common exclusions: Cabinet confidences. Common exemptions: national security, personal information.",`ATIP Online: <a href="https://atip-aiprp.tbs-sct.gc.ca/" target="_blank" rel="noopener">atip-aiprp.tbs-sct.gc.ca</a>`,`OIC: <a href="https://www.oic-ci.gc.ca/" target="_blank" rel="noopener">oic-ci.gc.ca</a>`],
-    deadlineNote:"If no response in 30 days (or the extended period), you may complain to the Information Commissioner.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of the application fee and any additional fees. ${d.waiver}.\n`:"";
-      return `${td()}\n\nATIP Coordinator\n${d.dept}\nGovernment of Canada\n\nRE: Request under the Access to Information Act, R.S.C. 1985, c. A-1\n\nDear ATIP Coordinator,\n\nPursuant to the Access to Information Act, R.S.C. 1985, c. A-1, I hereby request access to the following records held by ${d.dept}:\n\n${d.desc}${dr}\n\nI request that records be disclosed in ${d.format}.\n${wp}\nI am enclosing the $5.00 application fee (or submitting it through the ATIP Online portal). Please acknowledge receipt and provide a response within 30 calendar days as required by section 7 of the Act. If access is refused, please provide reasons in writing and advise me of my right to complain to the Information Commissioner of Canada.\n\nYours sincerely,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "Canada Access to Information Act",
+    law: "Access to Information Act, R.S.C. 1985, c. A-1",
+    deptLabel: "Federal Institution",
+    departments: ["Royal Canadian Mounted Police","Health Canada","Immigration, Refugees and Citizenship Canada","Canada Revenue Agency","Department of National Defence","Global Affairs Canada","Public Safety Canada","Employment and Social Development Canada","Other Federal Institution"],
+    feeWaiverHint: "e.g., waiver in the public interest; or financial hardship",
+    submitUrl: "https://atip-aiprp.tbs-sct.gc.ca/",
+    submitLabel: "ATIP Online \u2197",
+    infoTitle: "Canada Access to Information \u2014 Key Facts",
+    facts: [
+      "Federal institutions have <strong>30 calendar days</strong> to respond (extendable).",
+      "Application fee is <strong>$5 CAD</strong>; search, preparation, and production fees may also apply.",
+      "Complain to the <strong>Information Commissioner of Canada</strong> if dissatisfied.",
+      "Common exclusions: Cabinet confidences. Common exemptions: national security, personal information.",
+      "ATIP Online: <a href='https://atip-aiprp.tbs-sct.gc.ca/' target='_blank' rel='noopener'>atip-aiprp.tbs-sct.gc.ca</a>.",
+      "OIC: <a href='https://www.oic-ci.gc.ca/' target='_blank' rel='noopener'>oic-ci.gc.ca</a>."
+    ],
+    deadlineNote: "If no response in 30 days (or the extended period), complain to the Information Commissioner.",
+    letterFn: "canada"
   },
   "southafrica": {
-    label:"South Africa PAIA 2000", law:"Promotion of Access to Information Act 2 of 2000 (South Africa)",
-    lawShort:"PAIA (Act 2 of 2000)", deptLabel:"Public or Private Body",
-    departments:["South African Police Service","Department of Health","Department of Basic Education","National Treasury","Department of Justice and Constitutional Development","Department of Home Affairs","South African Revenue Service","Other Public Body"],
-    feeWaiverHint:"e.g., unable to pay the fee; or disclosure is in the public interest",
-    submitUrl:"https://www.inforegulator.org.za/", submitLabel:"Information Regulator ↗",
-    infoTitle:"South Africa PAIA — Key Facts",
-    facts:["Public bodies must respond within <strong>30 days</strong> (extendable by 30 days).","A request fee and access fee may apply (indigent persons may be exempted).","Refusals can be appealed internally, then to the Information Regulator.","Constitutional right of access to information under Section 32 of the Constitution.","PAIA applies to both public and private bodies.",`Information Regulator: <a href="https://www.inforegulator.org.za/" target="_blank" rel="noopener">inforegulator.org.za</a>`],
-    deadlineNote:"If no response within 30 days (60 with extension), the request is deemed refused — approach the Information Regulator.",
-    letter: function(d){
-      const ph=d.phone?`\nPhone: ${d.phone}`:"", dr=d.dates?`\nDate range: ${d.dates}`:"";
-      const wp=d.waiver?`\nI request a waiver of the request fee on grounds that: ${d.waiver}.\n`:"";
-      return `${td()}\n\nInformation Officer\n${d.dept}\nRepublic of South Africa\n\nRE: Request for Access to Information — Promotion of Access to Information Act 2 of 2000 (PAIA)\n\nDear Information Officer,\n\nI hereby request access to records of ${d.dept} in terms of section 18 of the Promotion of Access to Information Act 2 of 2000 (PAIA), read with section 32 of the Constitution of the Republic of South Africa, 1996.\n\nI request access to the following records:\n\n${d.desc}${dr}\n\nI request that access be provided in ${d.format}.\n${wp}\nI am willing to pay the prescribed request fee. Please advise me of the amount payable. Please provide a decision within 30 days as required by section 25 of PAIA. If access is refused, please provide reasons and advise me of my right to internal appeal and thereafter to approach the Information Regulator or a court.\n\nYours faithfully,\n\n${d.name}\nEmail: ${d.email}${ph}`;
-    }
+    label: "South Africa PAIA 2000",
+    law: "Promotion of Access to Information Act 2 of 2000 (South Africa)",
+    deptLabel: "Public or Private Body",
+    departments: ["South African Police Service","Department of Health","Department of Basic Education","National Treasury","Department of Justice and Constitutional Development","Department of Home Affairs","South African Revenue Service","Other Public Body"],
+    feeWaiverHint: "e.g., unable to pay the fee; or disclosure is in the public interest",
+    submitUrl: "https://www.inforegulator.org.za/",
+    submitLabel: "Information Regulator \u2197",
+    infoTitle: "South Africa PAIA \u2014 Key Facts",
+    facts: [
+      "Public bodies must respond within <strong>30 days</strong> (extendable by 30 days).",
+      "A request fee and access fee may apply; indigent persons may be exempted.",
+      "Refusals can be appealed internally, then to the <strong>Information Regulator</strong>.",
+      "Constitutional right of access to information under <strong>Section 32</strong> of the Constitution.",
+      "PAIA applies to both public and private bodies.",
+      "Information Regulator: <a href='https://www.inforegulator.org.za/' target='_blank' rel='noopener'>inforegulator.org.za</a>.",
+      "SAHRC guidance: <a href='https://www.sahrc.org.za/' target='_blank' rel='noopener'>sahrc.org.za</a>."
+    ],
+    deadlineNote: "If no response within 30 days (60 with extension), the request is deemed refused — approach the Information Regulator.",
+    letterFn: "southAfrica"
   }
 };
 
-function td() {
-  return new Date().toLocaleDateString("en-GB", { year:"numeric", month:"long", day:"numeric" });
+// ── Letter templates ─────────────────────────────────────────────────────────
+
+function todayStr() {
+  return new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
 }
+
+function LETTERS() { return {
+  usFederal({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI respectfully request a waiver of all fees associated with this request pursuant to 5 U.S.C. § 552(a)(4)(A)(iii). " + waiver + ". Disclosure of the requested information is in the public interest.\n" : "";
+    return todayStr() + "\n\nFOIA Request Officer\n" + dept + "\nUnited States Government\n\nRE: Freedom of Information Act Request — 5 U.S.C. § 552\n\nDear FOIA Officer:\n\nPursuant to the Freedom of Information Act, 5 U.S.C. § 552, I hereby request access to and copies of the following agency records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please provide a Vaughn index identifying each withheld record, the statutory exemption(s) claimed, and why the exemption applies. Please segregate and release all non-exempt portions.\n\nPlease acknowledge receipt of this request within 20 business days as required by 5 U.S.C. § 552(a)(6)(A)(i). If I do not receive a response within 20 business days, I reserve the right to file an administrative appeal.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  georgia({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI respectfully request a waiver of any fees associated with this request. " + waiver + ". Disclosure of these records serves the public interest.\n" : "";
+    return todayStr() + "\n\nOpen Records Custodian\n" + dept + "\nCity of Atlanta, Georgia\n\nRE: Open Records Request — O.C.G.A. § 50-18-70 et seq.\n\nDear Open Records Custodian:\n\nPursuant to the Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq., I hereby request access to and copies of the following public records maintained by the " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be produced in " + format + ".\n" + waiverPara + "\nIf any portion of this request is denied, please provide a written explanation citing the specific statutory exemption(s) relied upon and redact only exempt portions rather than withholding entire documents. Under O.C.G.A. § 50-18-72, all non-exempt portions must be released.\n\nPlease confirm receipt of this request within three (3) business days as required by Georgia law.\n\nThank you for your prompt attention to this matter.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  california({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ". Providing these records serves the public interest.\n" : "";
+    return todayStr() + "\n\nPublic Records Officer\n" + dept + "\nState of California\n\nRE: California Public Records Act Request — Cal. Gov. Code § 7920 et seq.\n\nDear Public Records Officer:\n\nPursuant to the California Public Records Act, California Government Code § 7920 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record withheld and the specific exemption claimed. Please disclose any reasonably segregable non-exempt information within any withheld records.\n\nPlease respond within 10 calendar days as required by Cal. Gov. Code § 7922.535. If an extension is required, please notify me in writing.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  newYork({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver or reduction of fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nRecords Access Officer\n" + dept + "\nState of New York\n\nRE: Freedom of Information Law Request — N.Y. Pub. Off. Law § 84 et seq.\n\nDear Records Access Officer:\n\nPursuant to the New York Freedom of Information Law (FOIL), Public Officers Law § 84 et seq., I hereby request access to and copies of the following records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please provide a written explanation citing the specific statutory exemption(s) relied upon and the factual basis for their application. Please disclose any reasonably segregable portions.\n\nUnder Pub. Off. Law § 89(3), please acknowledge this request within 5 business days and provide a full response within 20 business days.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  texas({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of fees. " + waiver + ". Disclosure serves the public interest.\n" : "";
+    return todayStr() + "\n\nPublic Information Officer\n" + dept + "\nState of Texas\n\nRE: Public Information Act Request — Tex. Gov't Code Ch. 552\n\nDear Public Information Officer:\n\nPursuant to the Texas Public Information Act, Texas Government Code Chapter 552, I hereby request access to and copies of the following public information:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nPlease respond promptly and within 10 business days as provided by Tex. Gov't Code § 552.228. If any information is withheld, please identify the specific exception under Chapter 552 that authorizes withholding and seek a ruling from the Attorney General as required.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  florida({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver or reduction of any fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nCustodian of Public Records\n" + dept + "\nState of Florida\n\nRE: Public Records Request — Ch. 119, Fla. Stat.\n\nDear Custodian of Public Records:\n\nPursuant to Chapter 119, Florida Statutes (Florida's Public Records Law), I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nPlease provide prompt access to these records as required by § 119.07(1)(a), Fla. Stat. If any records are exempt from disclosure, please cite the specific statutory exemption and provide all non-exempt portions.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  uk({ name, email, phone, dept, desc, dates, format }) {
+    const phoneLine = phone ? "\nTelephone: " + phone : "";
+    const datesLine = dates ? "\nDate range of information: " + dates : "";
+    return todayStr() + "\n\nFreedom of Information Officer\n" + dept + "\n\nDear Freedom of Information Officer,\n\nFreedom of Information Act 2000 — Request for Information\n\nI am writing to request information under the Freedom of Information Act 2000.\n\nPlease provide the following information held by " + dept + ":\n\n" + desc + datesLine + "\n\nI would prefer to receive the information in " + format + ".\n\nIf you are unable to provide any of the requested information, please state the reason for refusal, including the specific exemption applied, and advise me of the internal review procedure and my right to complain to the Information Commissioner's Office (ICO).\n\nPlease confirm receipt of this request and provide a response within 20 working days, as required under Section 10 of the Freedom of Information Act 2000.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  ireland({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any search and retrieval fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nFOI Officer\n" + dept + "\n\nDear FOI Officer,\n\nFreedom of Information Act 2014 — Request for Records\n\nI am making a request for records under the Freedom of Information Act 2014.\n\nPlease provide the following records held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that records be provided in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt of this request within 2 weeks and provide a decision within 4 weeks as required by Section 13 of the Freedom of Information Act 2014. If you decide to refuse access to any record, please provide reasons in writing, citing the specific exemption relied upon, and inform me of my right to request an internal review.\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  australia({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any applicable charges. " + waiver + ". Release is in the public interest.\n" : "";
+    return todayStr() + "\n\nFOI Coordinator\n" + dept + "\nAustralian Government\n\nDear FOI Coordinator,\n\nFreedom of Information Act 1982 (Cth) — Request for Access to Documents\n\nI am writing to request access to documents under the Freedom of Information Act 1982 (Cth).\n\nPlease provide access to the following documents held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request access to the documents in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt and provide a decision within 30 days as required by section 15 of the FOI Act. If you decide to refuse access to any document, please provide reasons and advise me of my rights to seek internal review and then review by the Office of the Australian Information Commissioner (OAIC).\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  newZealand({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any charges. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nOfficial Information Officer\n" + dept + "\nNew Zealand Government\n\nDear Official Information Officer,\n\nOfficial Information Act 1982 — Request for Information\n\nI am writing to request information under the Official Information Act 1982.\n\nPlease provide the following information held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that the information be provided in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt and respond as soon as reasonably practicable, and in any case within 20 working days, as required under section 15 of the Official Information Act 1982. If you refuse to provide the information, please state your reasons in writing and advise me of my right to complain to the Ombudsman.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  india({ name, email, phone, dept, desc, dates, format }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    return todayStr() + "\n\nThe Public Information Officer\n" + dept + "\nGovernment of India\n\nSubject: Application under the Right to Information Act, 2005\n\nDear Sir/Madam,\n\nI wish to seek information under Section 6(1) of the Right to Information Act, 2005.\n\nI request the following information from " + dept + ":\n\n" + desc + datesLine + "\n\nI request that the information be provided in " + format + ", if available.\n\nI am enclosing the prescribed application fee of Rs. 10 (or I am attaching proof of BPL card for fee exemption).\n\nPlease provide the information within 30 days as mandated under Section 7 of the RTI Act, 2005. In case of refusal, please provide the grounds in writing and advise me of the appellate authority under Section 19 of the Act.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  canada({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of the application fee and any additional fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nATIP Coordinator\n" + dept + "\nGovernment of Canada\n\nRE: Request under the Access to Information Act, R.S.C. 1985, c. A-1\n\nDear ATIP Coordinator,\n\nPursuant to the Access to Information Act, R.S.C. 1985, c. A-1, I hereby request access to the following records held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that records be disclosed in " + format + ".\n" + waiverPara + "\nI am enclosing the $5.00 CAD application fee (or submitting it through the ATIP Online portal). Please acknowledge receipt and provide a response within 30 calendar days as required by section 7 of the Act. If access is refused, please provide reasons in writing and advise me of my right to complain to the Information Commissioner of Canada.\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  southAfrica({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of the request fee on grounds that: " + waiver + ".\n" : "";
+    return todayStr() + "\n\nInformation Officer\n" + dept + "\nRepublic of South Africa\n\nRE: Request for Access to Information — PAIA (Act 2 of 2000)\n\nDear Information Officer,\n\nI hereby request access to records of " + dept + " in terms of section 18 of the Promotion of Access to Information Act 2 of 2000 (PAIA), read with section 32 of the Constitution of the Republic of South Africa, 1996.\n\nI request access to the following records:\n\n" + desc + datesLine + "\n\nI request that access be provided in " + format + ".\n" + waiverPara + "\nI am willing to pay the prescribed request fee; please advise me of the amount payable. Please provide a decision within 30 days as required by section 25 of PAIA. If access is refused, please provide reasons in writing and advise me of my right to internal appeal and thereafter to approach the Information Regulator or a court.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
+  }
+}; }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
+  t.textContent = msg;
+  t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2800);
 }
 function val(id) { return document.getElementById(id).value.trim(); }
-function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-function curJ() { return J[document.getElementById("jurisdiction").value]; }
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function currentJ() { return JURISDICTIONS[document.getElementById("jurisdiction").value]; }
+
+// ── Jurisdiction change ───────────────────────────────────────────────────────
+
+function pickJ(key) {
+  document.getElementById("jurisdiction").value = key;
+  onJurisdictionChange();
+}
 
 function onJurisdictionChange() {
-  const j = curJ(); if (!j) return;
-  document.getElementById("jlaw").textContent = j.law;
+  const j = currentJ();
+  if (!j) return;
+
+  document.getElementById("j-law").textContent = j.law;
   document.getElementById("dept-label").textContent = j.deptLabel + " *";
-  const sel = document.getElementById("department");
-  sel.innerHTML = j.departments.map(d => `<option value="${escHtml(d)}">${escHtml(d)}</option>`).join("");
+  const deptSel = document.getElementById("department");
+  deptSel.innerHTML = j.departments.map(d => "<option value=\"" + escHtml(d) + "\">" + escHtml(d) + "</option>").join("");
+
   document.getElementById("fee-waiver").placeholder = j.feeWaiverHint;
-  document.getElementById("fee-waiver-hint").textContent = "";
+  document.getElementById("fee-waiver-hint").textContent = j.feeWaiverHint.startsWith("e.g.") ? j.feeWaiverHint : "";
+
   const link = document.getElementById("submit-link");
-  link.href = j.submitUrl; link.textContent = j.submitLabel || "Submit Online ↗";
+  link.href = j.submitUrl;
+  link.textContent = j.submitLabel || "Submit Online \u2197";
+
   document.getElementById("info-title").textContent = j.infoTitle;
-  document.getElementById("info-list").innerHTML = j.facts.map(f => `<li>${f}</li>`).join("");
-  document.getElementById("deadline-note").innerHTML = `<strong>Response deadline reminder:</strong> ${j.deadlineNote}`;
+  document.getElementById("info-list").innerHTML = j.facts.map(f => "<li>" + f + "</li>").join("");
+  document.getElementById("deadline-note").innerHTML = "<strong>Response deadline reminder:</strong> " + j.deadlineNote;
+
   const box = document.getElementById("preview-box");
-  box.textContent = 'Fill in the form above and click "Generate Letter" to preview your request.';
-  box.classList.add("empty"); delete box.dataset.letter;
+  box.textContent = "Fill in the form above and click \"Generate Letter\" to preview your request.";
+  box.classList.add("empty");
+  delete box.dataset.letter;
 }
 
+// ── Generate letter ───────────────────────────────────────────────────────────
+
 function generateLetter() {
-  const name=val("your-name"), email=val("your-email");
-  if (!name || !email || !val("records-desc")) { showToast("Please fill in Name, Email, and Records Description."); return; }
-  const j = curJ();
-  const letter = j.letter({ name, email, phone:val("your-phone"), dept:val("department"),
-    desc:val("records-desc"), dates:val("date-range"), format:val("format-pref"), waiver:val("fee-waiver") });
+  const name   = val("your-name");
+  const email  = val("your-email");
+  const phone  = val("your-phone");
+  const dept   = val("department");
+  const desc   = val("records-desc");
+  const dates  = val("date-range");
+  const format = val("format-pref");
+  const waiver = val("fee-waiver");
+
+  if (!name || !email || !desc) {
+    showToast("Please fill in Name, Email, and Records Description.");
+    return;
+  }
+
+  const j = currentJ();
+  const letters = LETTERS();
+  const fn = letters[j.letterFn];
+  if (!fn) { showToast("Letter template not found for this jurisdiction."); return; }
+
+  const letter = fn({ name, email, phone, dept, desc, dates, format, waiver });
   const box = document.getElementById("preview-box");
-  box.textContent = letter; box.classList.remove("empty"); box.dataset.letter = letter;
+  box.textContent = letter;
+  box.classList.remove("empty");
+  box.dataset.letter = letter;
 }
+
+// ── Copy ──────────────────────────────────────────────────────────────────────
 
 function copyLetter() {
   const box = document.getElementById("preview-box");
-  if (box.classList.contains("empty")) { showToast("Generate a letter first."); return; }
-  navigator.clipboard.writeText(box.dataset.letter || box.textContent)
-    .then(() => showToast("Letter copied to clipboard!"));
+  const text = box.dataset.letter || box.textContent;
+  if (!text || box.classList.contains("empty")) { showToast("Generate a letter first."); return; }
+  navigator.clipboard.writeText(text).then(() => showToast("Letter copied to clipboard!"));
 }
 
+// ── Tracker ───────────────────────────────────────────────────────────────────
+
 function loadRequests() {
-  try { return JSON.parse(localStorage.getItem("global_foi_requests") || "[]"); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem("global_foi_requests") || "[]"); }
+  catch { return []; }
 }
 function saveRequests(arr) { localStorage.setItem("global_foi_requests", JSON.stringify(arr)); }
 
 function saveRequest() {
-  const name=val("your-name"), desc=val("records-desc");
-  const letter=document.getElementById("preview-box").dataset.letter;
-  if (!name||!desc) { showToast("Fill in Name and Description first."); return; }
+  const name   = val("your-name");
+  const dept   = val("department");
+  const desc   = val("records-desc");
+  const letter = document.getElementById("preview-box").dataset.letter;
+  const jKey   = document.getElementById("jurisdiction").value;
+  const j      = JURISDICTIONS[jKey];
+
+  if (!name || !desc) { showToast("Fill in Name and Description first."); return; }
   if (!letter) { showToast("Generate the letter before saving."); return; }
-  const j=curJ();
-  const reqs=loadRequests();
-  reqs.unshift({ id:Date.now(), name, dept:val("department"), jurisdiction:j?j.label:"",
-    desc: desc.substring(0,120)+(desc.length>120?"…":""), date:td(), status:"submitted", letter });
-  saveRequests(reqs); renderTracker(); showToast("Request saved to tracker.");
+
+  const requests = loadRequests();
+  requests.unshift({
+    id: Date.now(), name, dept,
+    jurisdiction: j ? j.label : jKey,
+    desc: desc.substring(0, 120) + (desc.length > 120 ? "\u2026" : ""),
+    date: todayStr(), status: "submitted", letter
+  });
+  saveRequests(requests);
+  renderTracker();
+  showToast("Request saved to tracker.");
 }
 
 function deleteRequest(id) {
   if (!confirm("Delete this request from your tracker?")) return;
-  saveRequests(loadRequests().filter(r=>r.id!==id)); renderTracker();
-}
-function updateStatus(id,status) {
-  saveRequests(loadRequests().map(r=>r.id===id?{...r,status}:r)); renderTracker();
-}
-function viewLetter(id) {
-  const r=loadRequests().find(r=>r.id===id); if(!r) return;
-  const box=document.getElementById("preview-box");
-  box.textContent=r.letter; box.classList.remove("empty"); box.dataset.letter=r.letter;
-  box.scrollIntoView({behavior:"smooth"});
+  saveRequests(loadRequests().filter(r => r.id !== id));
+  renderTracker();
 }
 
-const BADGE={submitted:"badge-submitted",pending:"badge-pending",received:"badge-received",denied:"badge-denied"};
-const BLABEL={submitted:"Submitted",pending:"Pending",received:"Received",denied:"Denied"};
+function updateStatus(id, status) {
+  saveRequests(loadRequests().map(r => r.id === id ? Object.assign({}, r, { status }) : r));
+  renderTracker();
+}
+
+function viewLetter(id) {
+  const r = loadRequests().find(r => r.id === id);
+  if (!r) return;
+  const box = document.getElementById("preview-box");
+  box.textContent = r.letter;
+  box.classList.remove("empty");
+  box.dataset.letter = r.letter;
+  box.scrollIntoView({ behavior: "smooth" });
+}
+
+const BADGE = { submitted:"badge-submitted", pending:"badge-pending", received:"badge-received", denied:"badge-denied" };
+const BLABEL = { submitted:"Submitted", pending:"Pending", received:"Received", denied:"Denied" };
 
 function renderTracker() {
-  const reqs=loadRequests(), list=document.getElementById("request-list");
-  if (!reqs.length) { list.innerHTML='<div class="empty-state">No saved requests yet.</div>'; return; }
-  list.innerHTML=reqs.map(r=>`
-    <div class="req-item status-${r.status}">
-      <div class="req-item-header">
-        <span class="req-item-title">${escHtml(r.dept)}</span>
-        <span class="req-badge ${BADGE[r.status]||""}">${BLABEL[r.status]||r.status}</span>
-      </div>
-      <div class="req-meta" style="font-size:.78rem;color:#4f46e5;font-weight:600;">${escHtml(r.jurisdiction||"")}</div>
-      <div class="req-meta">${escHtml(r.desc)}</div>
-      <div class="req-meta">Submitted: ${escHtml(r.date)}</div>
-      <div class="req-actions">
-        <button class="btn btn-outline btn-sm" onclick="viewLetter(${r.id})">View Letter</button>
-        <select class="btn btn-sm" style="padding:.3rem .5rem" onchange="updateStatus(${r.id},this.value)">
-          <option value="submitted" ${r.status==="submitted"?"selected":""}>Submitted</option>
-          <option value="pending"   ${r.status==="pending"?"selected":""}>Pending</option>
-          <option value="received"  ${r.status==="received"?"selected":""}>Received</option>
-          <option value="denied"    ${r.status==="denied"?"selected":""}>Denied</option>
-        </select>
-        <button class="btn btn-danger btn-sm" onclick="deleteRequest(${r.id})">Delete</button>
-      </div>
-    </div>`).join("");
+  const requests = loadRequests();
+  const list = document.getElementById("request-list");
+  if (!requests.length) {
+    list.innerHTML = '<div class="empty-state">No saved requests yet.</div>';
+    return;
+  }
+  list.innerHTML = requests.map(r =>
+    '<div class="req-item status-' + r.status + '">' +
+    '<div class="req-item-header"><span class="req-item-title">' + escHtml(r.dept) + '</span>' +
+    '<span class="req-badge ' + (BADGE[r.status]||"") + '">' + (BLABEL[r.status]||r.status) + '</span></div>' +
+    '<div class="req-meta" style="font-size:.78rem;color:#4f46e5;font-weight:600;">' + escHtml(r.jurisdiction||"") + '</div>' +
+    '<div class="req-meta">' + escHtml(r.desc) + '</div>' +
+    '<div class="req-meta">Submitted: ' + escHtml(r.date) + '</div>' +
+    '<div class="req-actions">' +
+    '<button class="btn btn-outline btn-sm" onclick="viewLetter(' + r.id + ')">View Letter</button>' +
+    '<select class="btn btn-sm" style="padding:.3rem .5rem" onchange="updateStatus(' + r.id + ', this.value)">' +
+    '<option value="submitted"' + (r.status==="submitted"?" selected":"") + '>Submitted</option>' +
+    '<option value="pending"'   + (r.status==="pending"  ?" selected":"") + '>Pending</option>' +
+    '<option value="received"'  + (r.status==="received" ?" selected":"") + '>Received</option>' +
+    '<option value="denied"'    + (r.status==="denied"   ?" selected":"") + '>Denied</option>' +
+    '</select>' +
+    '<button class="btn btn-danger btn-sm" onclick="deleteRequest(' + r.id + ')">Delete</button>' +
+    '</div></div>'
+  ).join("");
 }
+
+// ── Clear ─────────────────────────────────────────────────────────────────────
 
 function clearForm() {
   ["your-name","your-email","your-phone","records-desc","date-range","fee-waiver","lazy-input"]
-    .forEach(id=>document.getElementById(id).value="");
-  const box=document.getElementById("preview-box");
-  box.textContent='Fill in the form above and click "Generate Letter" to preview your request.';
-  box.classList.add("empty"); delete box.dataset.letter;
+    .forEach(id => { document.getElementById(id).value = ""; });
+  const box = document.getElementById("preview-box");
+  box.textContent = "Fill in the form above and click \"Generate Letter\" to preview your request.";
+  box.classList.add("empty");
+  delete box.dataset.letter;
 }
+
+// ── API Key ───────────────────────────────────────────────────────────────────
 
 function saveApiKey() {
-  const k=document.getElementById("api-key-input").value.trim();
-  if(k) localStorage.setItem("global_foi_apikey",k); else localStorage.removeItem("global_foi_apikey");
+  const k = document.getElementById("api-key-input").value.trim();
+  if (k) localStorage.setItem("global_foi_apikey", k);
+  else localStorage.removeItem("global_foi_apikey");
 }
-function loadApiKey() { return localStorage.getItem("global_foi_apikey")||""; }
+
+// ── AI Polish ─────────────────────────────────────────────────────────────────
 
 async function polishRequest() {
-  const lazy=document.getElementById("lazy-input").value.trim();
-  if(!lazy){showToast("Describe what you want first.");return;}
-  const apiKey=document.getElementById("api-key-input").value.trim()||loadApiKey();
-  if(!apiKey){showToast("Enter your Anthropic API key above.");return;}
-  const btn=document.getElementById("polish-btn");
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Thinking…';
-  const j=curJ(), dept=document.getElementById("department").value, dr=val("date-range");
-  const sys=`You are an expert in freedom of information law, specifically the ${j.law}. Convert a rough, informal description into a precise, legally effective description of records for a formal request under ${j.lawShort}. Write ONLY the records description paragraph(s) — no salutation, no legal citations, no boilerplate. Include document types, relevant parties, and time periods. Be specific and professional. 2–4 sentences.`;
-  const msg=`Jurisdiction: ${j.label}\nPublic body: ${dept}${dr?`\nDate range: ${dr}`:""}\nRough request: ${lazy}`;
+  const lazy = document.getElementById("lazy-input").value.trim();
+  if (!lazy) { showToast("Describe what you want first."); return; }
+  const apiKey = document.getElementById("api-key-input").value.trim() || (localStorage.getItem("global_foi_apikey")||"");
+  if (!apiKey) { showToast("Enter your Anthropic API key above."); return; }
+
+  const btn = document.getElementById("polish-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Thinking\u2026';
+
+  const j = currentJ();
+  const dept = document.getElementById("department").value;
+  const dateRange = val("date-range");
+  const systemPrompt = "You are an expert in freedom of information / open records law, specifically the " + j.law + ". Convert a rough, informal description of what someone wants into a precise, legally effective description of records for a formal request. Write ONLY the records description paragraph(s) — no salutation, no legal citations, no letter boilerplate. Be specific: include document types (emails, contracts, invoices, meeting minutes, reports, etc.), relevant parties, and time periods if mentioned. Keep it professional and clear. 2-4 sentences is ideal.";
+  const userMsg = "Jurisdiction: " + j.label + "\nPublic body: " + dept + (dateRange ? "\nDate range: " + dateRange : "") + "\nRough request: " + lazy;
+
   try {
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-calls":"true"},
-      body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:512,system:sys,messages:[{role:"user",content:msg}]})
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-calls": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMsg }]
+      })
     });
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
-    const data=await res.json();
-    const improved=data.content?.[0]?.text?.trim();
-    if(!improved) throw new Error("Empty response from API.");
-    document.getElementById("records-desc").value=improved;
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || "HTTP " + res.status);
+    }
+    const data = await res.json();
+    const improved = data.content && data.content[0] && data.content[0].text && data.content[0].text.trim();
+    if (!improved) throw new Error("Empty response from API.");
+    document.getElementById("records-desc").value = improved;
     showToast("Description improved! Review it above.");
-  } catch(e){showToast("Error: "+e.message);}
-  finally{btn.disabled=false;btn.innerHTML="Make it Better";}
+  } catch (e) {
+    showToast("Error: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = "Make it Better";
+  }
 }
 
+// ── Init ──────────────────────────────────────────────────────────────────────
 onJurisdictionChange();
 renderTracker();
-const sk=loadApiKey(); if(sk) document.getElementById("api-key-input").value=sk;
+const savedKey = localStorage.getItem("global_foi_apikey");
+if (savedKey) document.getElementById("api-key-input").value = savedKey;
 </script>
 </body>
 </html>
