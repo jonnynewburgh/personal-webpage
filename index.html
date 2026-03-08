@@ -836,82 +836,85 @@ function todayStr() {
   return new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function LETTERS() { return {
+function letterPhoneLine(phone) { return phone ? "\nPhone: " + phone : ""; }
+function letterDatesLine(dates) { return dates ? "\nDate range of records: " + dates : ""; }
+
+const LETTERS = {
   usFederal({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI respectfully request a waiver of all fees associated with this request pursuant to 5 U.S.C. § 552(a)(4)(A)(iii). " + waiver + ". Disclosure of the requested information is in the public interest.\n" : "";
     return todayStr() + "\n\nFOIA Request Officer\n" + dept + "\nUnited States Government\n\nRE: Freedom of Information Act Request — 5 U.S.C. § 552\n\nDear FOIA Officer:\n\nPursuant to the Freedom of Information Act, 5 U.S.C. § 552, I hereby request access to and copies of the following agency records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please provide a Vaughn index identifying each withheld record, the statutory exemption(s) claimed, and why the exemption applies. Please segregate and release all non-exempt portions.\n\nPlease acknowledge receipt of this request within 20 business days as required by 5 U.S.C. § 552(a)(6)(A)(i). If I do not receive a response within 20 business days, I reserve the right to file an administrative appeal.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   georgia({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI respectfully request a waiver of any fees associated with this request. " + waiver + ". Disclosure of these records serves the public interest.\n" : "";
     return todayStr() + "\n\nOpen Records Custodian\n" + dept + "\nCity of Atlanta, Georgia\n\nRE: Open Records Request — O.C.G.A. § 50-18-70 et seq.\n\nDear Open Records Custodian:\n\nPursuant to the Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq., I hereby request access to and copies of the following public records maintained by the " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be produced in " + format + ".\n" + waiverPara + "\nIf any portion of this request is denied, please provide a written explanation citing the specific statutory exemption(s) relied upon and redact only exempt portions rather than withholding entire documents. Under O.C.G.A. § 50-18-72, all non-exempt portions must be released.\n\nPlease confirm receipt of this request within three (3) business days as required by Georgia law.\n\nThank you for your prompt attention to this matter.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   california({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ". Providing these records serves the public interest.\n" : "";
     return todayStr() + "\n\nPublic Records Officer\n" + dept + "\nState of California\n\nRE: California Public Records Act Request — Cal. Gov. Code § 7920 et seq.\n\nDear Public Records Officer:\n\nPursuant to the California Public Records Act, California Government Code § 7920 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record withheld and the specific exemption claimed. Please disclose any reasonably segregable non-exempt information within any withheld records.\n\nPlease respond within 10 calendar days as required by Cal. Gov. Code § 7922.535. If an extension is required, please notify me in writing.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   newYork({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver or reduction of fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nRecords Access Officer\n" + dept + "\nState of New York\n\nRE: Freedom of Information Law Request — N.Y. Pub. Off. Law § 84 et seq.\n\nDear Records Access Officer:\n\nPursuant to the New York Freedom of Information Law (FOIL), Public Officers Law § 84 et seq., I hereby request access to and copies of the following records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please provide a written explanation citing the specific statutory exemption(s) relied upon and the factual basis for their application. Please disclose any reasonably segregable portions.\n\nUnder Pub. Off. Law § 89(3), please acknowledge this request within 5 business days and provide a full response within 20 business days.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   texas({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of fees. " + waiver + ". Disclosure serves the public interest.\n" : "";
     return todayStr() + "\n\nPublic Information Officer\n" + dept + "\nState of Texas\n\nRE: Public Information Act Request — Tex. Gov't Code Ch. 552\n\nDear Public Information Officer:\n\nPursuant to the Texas Public Information Act, Texas Government Code Chapter 552, I hereby request access to and copies of the following public information:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nPlease respond promptly and within 10 business days as provided by Tex. Gov't Code § 552.228. If any information is withheld, please identify the specific exception under Chapter 552 that authorizes withholding and seek a ruling from the Attorney General as required.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   florida({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver or reduction of any fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nCustodian of Public Records\n" + dept + "\nState of Florida\n\nRE: Public Records Request — Ch. 119, Fla. Stat.\n\nDear Custodian of Public Records:\n\nPursuant to Chapter 119, Florida Statutes (Florida's Public Records Law), I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nPlease provide prompt access to these records as required by § 119.07(1)(a), Fla. Stat. If any records are exempt from disclosure, please cite the specific statutory exemption and provide all non-exempt portions.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   illinois({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI respectfully request a waiver of all fees. " + waiver + ". Disclosure of these records serves the public interest.\n" : "";
     return todayStr() + "\n\nFOIA Officer\n" + dept + "\nState of Illinois\n\nRE: Freedom of Information Act Request — 5 ILCS 140\n\nDear FOIA Officer:\n\nPursuant to the Illinois Freedom of Information Act, 5 ILCS 140, I hereby request access to and copies of the following public records maintained by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please identify each withheld record, cite the specific exemption(s) under 5 ILCS 140/7 or 140/7.5 relied upon, and provide the factual basis for applying that exemption. Please release all reasonably segregable, non-exempt portions.\n\nPlease acknowledge receipt of this request and respond within 5 business days as required by 5 ILCS 140/3(d).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   washington({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ". Disclosure serves the public interest.\n" : "";
     return todayStr() + "\n\nPublic Records Officer\n" + dept + "\nState of Washington\n\nRE: Public Records Act Request — RCW 42.56\n\nDear Public Records Officer:\n\nPursuant to the Washington Public Records Act, RCW 42.56, I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each withheld record, cite the specific exemption under RCW 42.56 or other applicable law, and explain why the exemption applies. Please provide all reasonably segregable, non-exempt portions.\n\nPlease acknowledge receipt of this request within 5 business days as required by RCW 42.56.520.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   colorado({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any research or copying fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nCustodian of Records\n" + dept + "\nState of Colorado\n\nRE: Colorado Open Records Act Request — C.R.S. § 24-72-201 et seq.\n\nDear Custodian of Records:\n\nPursuant to the Colorado Open Records Act (CORA), C.R.S. § 24-72-201 et seq., I hereby request the opportunity to inspect and obtain copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please cite the specific statutory basis for denial under C.R.S. § 24-72-204 and provide all reasonably segregable, non-exempt portions.\n\nPlease allow inspection within 3 business days as required by C.R.S. § 24-72-203(1)(a).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   massachusetts({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nRecords Access Officer\n" + dept + "\nCommonwealth of Massachusetts\n\nRE: Public Records Request — G.L. c. 66, § 10\n\nDear Records Access Officer:\n\nPursuant to the Massachusetts Public Records Law, G.L. c. 66, § 10, I hereby request access to and copies of the following public records maintained by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record, cite the specific exemption under G.L. c. 4, § 7(26) or other applicable law, and provide all reasonably segregable, non-exempt portions.\n\nPlease respond within 10 business days as required by G.L. c. 66, § 10(b).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   pennsylvania({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nOpen Records Officer\n" + dept + "\nCommonwealth of Pennsylvania\n\nRE: Right-to-Know Law Request — 65 P.S. § 67.101 et seq.\n\nDear Open Records Officer:\n\nPursuant to the Pennsylvania Right-to-Know Law, 65 P.S. § 67.101 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please cite the specific exemption under 65 P.S. § 67.708 and state the factual basis for each denial. Please provide all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by 65 P.S. § 67.901.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   virginia({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nFOIA Officer\n" + dept + "\nCommonwealth of Virginia\n\nRE: Freedom of Information Act Request — Va. Code § 2.2-3700 et seq.\n\nDear FOIA Officer:\n\nPursuant to the Virginia Freedom of Information Act, Va. Code § 2.2-3700 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record, cite the specific exemption under Va. Code § 2.2-3705 et seq., and release all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by Va. Code § 2.2-3704(B).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   michigan({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
-    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const phoneLine = letterPhoneLine(phone);
+    const datesLine = letterDatesLine(dates);
     const waiverPara = waiver ? "\nI request a waiver of all fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nFOIA Coordinator\n" + dept + "\nState of Michigan\n\nRE: Freedom of Information Act Request — MCL 15.231 et seq.\n\nDear FOIA Coordinator:\n\nPursuant to the Michigan Freedom of Information Act, MCL 15.231 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please provide a written explanation identifying the specific exemption(s) under MCL 15.243 relied upon and release all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by MCL 15.235(2).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
@@ -921,41 +924,41 @@ function LETTERS() { return {
     return todayStr() + "\n\nFreedom of Information Officer\n" + dept + "\n\nDear Freedom of Information Officer,\n\nFreedom of Information Act 2000 — Request for Information\n\nI am writing to request information under the Freedom of Information Act 2000.\n\nPlease provide the following information held by " + dept + ":\n\n" + desc + datesLine + "\n\nI would prefer to receive the information in " + format + ".\n\nIf you are unable to provide any of the requested information, please state the reason for refusal, including the specific exemption applied, and advise me of the internal review procedure and my right to complain to the Information Commissioner's Office (ICO).\n\nPlease confirm receipt of this request and provide a response within 20 working days, as required under Section 10 of the Freedom of Information Act 2000.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   ireland({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver of any search and retrieval fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nFOI Officer\n" + dept + "\n\nDear FOI Officer,\n\nFreedom of Information Act 2014 — Request for Records\n\nI am making a request for records under the Freedom of Information Act 2014.\n\nPlease provide the following records held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that records be provided in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt of this request within 2 weeks and provide a decision within 4 weeks as required by Section 13 of the Freedom of Information Act 2014. If you decide to refuse access to any record, please provide reasons in writing, citing the specific exemption relied upon, and inform me of my right to request an internal review.\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   australia({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver of any applicable charges. " + waiver + ". Release is in the public interest.\n" : "";
     return todayStr() + "\n\nFOI Coordinator\n" + dept + "\nAustralian Government\n\nDear FOI Coordinator,\n\nFreedom of Information Act 1982 (Cth) — Request for Access to Documents\n\nI am writing to request access to documents under the Freedom of Information Act 1982 (Cth).\n\nPlease provide access to the following documents held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request access to the documents in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt and provide a decision within 30 days as required by section 15 of the FOI Act. If you decide to refuse access to any document, please provide reasons and advise me of my rights to seek internal review and then review by the Office of the Australian Information Commissioner (OAIC).\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   newZealand({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver of any charges. " + waiver + ".\n" : "";
     return todayStr() + "\n\nOfficial Information Officer\n" + dept + "\nNew Zealand Government\n\nDear Official Information Officer,\n\nOfficial Information Act 1982 — Request for Information\n\nI am writing to request information under the Official Information Act 1982.\n\nPlease provide the following information held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that the information be provided in " + format + ".\n" + waiverPara + "\nPlease acknowledge receipt and respond as soon as reasonably practicable, and in any case within 20 working days, as required under section 15 of the Official Information Act 1982. If you refuse to provide the information, please state your reasons in writing and advise me of my right to complain to the Ombudsman.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   india({ name, email, phone, dept, desc, dates, format }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     return todayStr() + "\n\nThe Public Information Officer\n" + dept + "\nGovernment of India\n\nSubject: Application under the Right to Information Act, 2005\n\nDear Sir/Madam,\n\nI wish to seek information under Section 6(1) of the Right to Information Act, 2005.\n\nI request the following information from " + dept + ":\n\n" + desc + datesLine + "\n\nI request that the information be provided in " + format + ", if available.\n\nI am enclosing the prescribed application fee of Rs. 10 (or I am attaching proof of BPL card for fee exemption).\n\nPlease provide the information within 30 days as mandated under Section 7 of the RTI Act, 2005. In case of refusal, please provide the grounds in writing and advise me of the appellate authority under Section 19 of the Act.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   canada({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver of the application fee and any additional fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nATIP Coordinator\n" + dept + "\nGovernment of Canada\n\nRE: Request under the Access to Information Act, R.S.C. 1985, c. A-1\n\nDear ATIP Coordinator,\n\nPursuant to the Access to Information Act, R.S.C. 1985, c. A-1, I hereby request access to the following records held by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that records be disclosed in " + format + ".\n" + waiverPara + "\nI am enclosing the $5.00 CAD application fee (or submitting it through the ATIP Online portal). Please acknowledge receipt and provide a response within 30 calendar days as required by section 7 of the Act. If access is refused, please provide reasons in writing and advise me of my right to complain to the Information Commissioner of Canada.\n\nYours sincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   southAfrica({ name, email, phone, dept, desc, dates, format, waiver }) {
-    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const phoneLine = letterPhoneLine(phone);
     const datesLine = dates ? "\nDate range: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver of the request fee on grounds that: " + waiver + ".\n" : "";
     return todayStr() + "\n\nInformation Officer\n" + dept + "\nRepublic of South Africa\n\nRE: Request for Access to Information — PAIA (Act 2 of 2000)\n\nDear Information Officer,\n\nI hereby request access to records of " + dept + " in terms of section 18 of the Promotion of Access to Information Act 2 of 2000 (PAIA), read with section 32 of the Constitution of the Republic of South Africa, 1996.\n\nI request access to the following records:\n\n" + desc + datesLine + "\n\nI request that access be provided in " + format + ".\n" + waiverPara + "\nI am willing to pay the prescribed request fee; please advise me of the amount payable. Please provide a decision within 30 days as required by section 25 of PAIA. If access is refused, please provide reasons in writing and advise me of my right to internal appeal and thereafter to approach the Information Regulator or a court.\n\nYours faithfully,\n\n" + name + "\nEmail: " + email + phoneLine;
   }
-}; }
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -985,7 +988,7 @@ function onJurisdictionChange() {
   document.getElementById("j-law").textContent = j.law;
   document.getElementById("dept-label").textContent = j.deptLabel + " *";
   const deptSel = document.getElementById("department");
-  deptSel.innerHTML = j.departments.map(d => "<option value=\"" + escHtml(d) + "\">" + escHtml(d) + "</option>").join("");
+  deptSel.innerHTML = j.departments.map(d => { const s = escHtml(d); return "<option value=\"" + s + "\">" + s + "</option>"; }).join("");
 
   document.getElementById("fee-waiver").placeholder = j.feeWaiverHint;
   document.getElementById("fee-waiver-hint").textContent = j.feeWaiverHint.startsWith("e.g.") ? j.feeWaiverHint : "";
@@ -1022,10 +1025,8 @@ function generateLetter() {
   }
 
   const j = currentJ();
-  const letters = LETTERS();
-  const fn = letters[j.letterFn];
+  const fn = LETTERS[j.letterFn];
   if (!fn) { showToast("Letter template not found for this jurisdiction."); return; }
-
   const letter = fn({ name, email, phone, dept, desc, dates, format, waiver });
   const box = document.getElementById("preview-box");
   box.textContent = letter;
