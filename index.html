@@ -123,7 +123,7 @@
   <div class="seal">&#x1F30D;</div>
   <div>
     <h1>Global FOI Request Tool</h1>
-    <p>Draft freedom of information / open records requests for 13 jurisdictions worldwide</p>
+    <p>Draft freedom of information / open records requests for 27 jurisdictions worldwide</p>
   </div>
 </header>
 
@@ -137,13 +137,31 @@
         <div class="j-banner-top">
           <label for="jurisdiction">&#x1F5FA; Jurisdiction</label>
           <select id="jurisdiction" onchange="onJurisdictionChange()">
-            <optgroup label="United States">
+            <optgroup label="United States — Federal">
               <option value="us-federal">Federal FOIA (5 U.S.C. § 552)</option>
+            </optgroup>
+            <optgroup label="US Federal Agencies">
+              <option value="us-fed-cfpb">CFPB (Consumer Financial Protection Bureau)</option>
+              <option value="us-fed-fedreserve">Federal Reserve (Board of Governors)</option>
+              <option value="us-fed-sec">SEC (Securities and Exchange Commission)</option>
+              <option value="us-fed-fdic">FDIC (Federal Deposit Insurance Corporation)</option>
+              <option value="us-fed-ftc">FTC (Federal Trade Commission)</option>
+              <option value="us-fed-occ">OCC (Office of the Comptroller of the Currency)</option>
+              <option value="us-fed-cftc">CFTC (Commodity Futures Trading Commission)</option>
+            </optgroup>
+            <optgroup label="United States — States">
               <option value="us-georgia" selected>Georgia — Atlanta (Open Records Act)</option>
               <option value="us-california">California (CPRA)</option>
               <option value="us-newyork">New York (FOIL)</option>
               <option value="us-texas">Texas (TPIA)</option>
               <option value="us-florida">Florida (Sunshine Law)</option>
+              <option value="us-illinois">Illinois (FOIA, 5 ILCS 140)</option>
+              <option value="us-washington">Washington (Public Records Act)</option>
+              <option value="us-colorado">Colorado (CORA)</option>
+              <option value="us-massachusetts">Massachusetts (Public Records Law)</option>
+              <option value="us-pennsylvania">Pennsylvania (Right-to-Know Law)</option>
+              <option value="us-virginia">Virginia (FOIA)</option>
+              <option value="us-michigan">Michigan (FOIA)</option>
             </optgroup>
             <optgroup label="Europe &amp; United Kingdom">
               <option value="uk">United Kingdom (FOIA 2000)</option>
@@ -292,6 +310,142 @@ const JURISDICTIONS = {
     deadlineNote: "If you don't receive a determination within 20 business days, you may file suit without exhausting administrative appeals.",
     letterFn: "usFederal"
   },
+  "us-fed-cfpb": {
+    label: "CFPB — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "CFPB Division / Office",
+    departments: ["Office of Consumer Response","Division of Supervision, Enforcement, and Fair Lending","Division of Research, Policy, and Markets","Division of Consumer Education and External Affairs","Office of General Counsel","Office of the Director","Office of Inspector General","Other CFPB Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.consumerfinance.gov/foia-requests/",
+    submitLabel: "CFPB FOIA Portal \u2197",
+    infoTitle: "CFPB FOIA \u2014 Key Facts",
+    facts: [
+      "CFPB is an independent federal agency subject to the standard <strong>20 business-day</strong> FOIA response window.",
+      "Submit requests via the CFPB FOIA portal or by mail to the CFPB FOIA Public Liaison.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "Common exemptions: supervisory/examination records, law enforcement, personal privacy, trade secrets.",
+      "Appeal a denial to the CFPB FOIA Appeals Officer, then to federal district court.",
+      "CFPB FOIA portal: <a href='https://www.consumerfinance.gov/foia-requests/' target='_blank' rel='noopener'>consumerfinance.gov/foia-requests</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-fedreserve": {
+    label: "Federal Reserve — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "Federal Reserve Division / Reserve Bank",
+    departments: ["Board of Governors","Division of Banking Supervision and Regulation","Division of Consumer and Community Affairs","Division of Financial Stability","Division of International Finance","Division of Monetary Affairs","Division of Research and Statistics","Office of Inspector General","Federal Reserve Bank of New York","Federal Reserve Bank of Chicago","Federal Reserve Bank of San Francisco","Other Reserve Bank or Division"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.federalreserve.gov/apps/foia/",
+    submitLabel: "Fed Reserve FOIA Portal \u2197",
+    infoTitle: "Federal Reserve FOIA \u2014 Key Facts",
+    facts: [
+      "The Board of Governors and each Reserve Bank maintain separate FOIA programs.",
+      "Standard <strong>20 business-day</strong> response window applies.",
+      "Many Board records are available in the <strong>FOIA Reading Room</strong> before a formal request.",
+      "Examination records and confidential supervisory information are often exempt.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "Fed FOIA portal: <a href='https://www.federalreserve.gov/apps/foia/' target='_blank' rel='noopener'>federalreserve.gov/apps/foia</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-sec": {
+    label: "SEC — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "SEC Division / Office",
+    departments: ["Division of Enforcement","Division of Corporation Finance","Division of Investment Management","Division of Trading and Markets","Division of Economic and Risk Analysis","Office of General Counsel","Office of Compliance Inspections and Examinations","Office of Inspector General","Other SEC Division or Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://efts.sec.gov/LATEST/search-index?q=%22FOIA%22",
+    submitLabel: "SEC FOIA \u2197",
+    infoTitle: "SEC FOIA \u2014 Key Facts",
+    facts: [
+      "Standard <strong>20 business-day</strong> FOIA response window.",
+      "The SEC's EDGAR database contains many public filings that don't require a FOIA request.",
+      "Examination and enforcement records are frequently withheld under law-enforcement and supervisory exemptions.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "SEC FOIA info: <a href='https://www.sec.gov/foia' target='_blank' rel='noopener'>sec.gov/foia</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-fdic": {
+    label: "FDIC — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "FDIC Division / Office",
+    departments: ["Division of Risk Management Supervision","Division of Depositor and Consumer Protection","Division of Complex Institution Supervision and Resolution","Legal Division","Division of Insurance and Research","Division of Administration","Office of Inspector General","Other FDIC Division or Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.fdic.gov/about/freedom-of-information-act/",
+    submitLabel: "FDIC FOIA \u2197",
+    infoTitle: "FDIC FOIA \u2014 Key Facts",
+    facts: [
+      "Standard <strong>20 business-day</strong> FOIA response window.",
+      "Bank examination reports and related records are routinely withheld as confidential supervisory information.",
+      "Many enforcement actions, orders, and press releases are available publicly without a FOIA request.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "FDIC FOIA: <a href='https://www.fdic.gov/about/freedom-of-information-act/' target='_blank' rel='noopener'>fdic.gov/about/freedom-of-information-act</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-ftc": {
+    label: "FTC — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "FTC Bureau / Office",
+    departments: ["Bureau of Consumer Protection","Bureau of Competition","Bureau of Economics","Office of General Counsel","Office of Policy Planning","Office of Inspector General","Office of International Affairs","Other FTC Bureau or Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.ftc.gov/site-information/foia",
+    submitLabel: "FTC FOIA \u2197",
+    infoTitle: "FTC FOIA \u2014 Key Facts",
+    facts: [
+      "Standard <strong>20 business-day</strong> FOIA response window.",
+      "Many FTC orders, complaints, and reports are publicly available without a FOIA request.",
+      "Pre-merger notification (HSR) records are generally confidential by statute.",
+      "Law-enforcement and commercial-confidentiality exemptions are commonly invoked.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "FTC FOIA: <a href='https://www.ftc.gov/site-information/foia' target='_blank' rel='noopener'>ftc.gov/site-information/foia</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-occ": {
+    label: "OCC — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "OCC District / Office",
+    departments: ["Office of the Comptroller of the Currency (HQ)","Large Bank Supervision","Midsize and Community Bank Supervision","Office of Enterprise Governance and the Ombudsman","Office of the Chief Counsel","Office of Inspector General","Other OCC Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.occ.gov/about/foia/index-foia.html",
+    submitLabel: "OCC FOIA \u2197",
+    infoTitle: "OCC FOIA \u2014 Key Facts",
+    facts: [
+      "Standard <strong>20 business-day</strong> FOIA response window.",
+      "Bank examination reports and supervisory communications are protected under 12 U.S.C. § 1820(d).",
+      "Enforcement orders and formal agreements are publicly available without a FOIA request.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "OCC FOIA: <a href='https://www.occ.gov/about/foia/index-foia.html' target='_blank' rel='noopener'>occ.gov/about/foia</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
+  "us-fed-cftc": {
+    label: "CFTC — Federal FOIA",
+    law: "Freedom of Information Act, 5 U.S.C. § 552",
+    deptLabel: "CFTC Division / Office",
+    departments: ["Division of Enforcement","Division of Clearing and Risk","Division of Market Oversight","Division of Swap Dealer and Intermediary Oversight","Office of the General Counsel","Office of Inspector General","Office of Chief Economist","Other CFTC Division or Office"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure is in the public interest under 5 U.S.C. § 552(a)(4)(A)(iii)",
+    submitUrl: "https://www.cftc.gov/FOIA/index.htm",
+    submitLabel: "CFTC FOIA \u2197",
+    infoTitle: "CFTC FOIA \u2014 Key Facts",
+    facts: [
+      "Standard <strong>20 business-day</strong> FOIA response window.",
+      "Many CFTC enforcement orders, advisories, and market data reports are publicly available.",
+      "Confidential business information and law-enforcement materials are commonly withheld.",
+      "Fee waivers available for news media, educational institutions, and public-interest requests.",
+      "CFTC FOIA: <a href='https://www.cftc.gov/FOIA/index.htm' target='_blank' rel='noopener'>cftc.gov/FOIA</a>."
+    ],
+    deadlineNote: "If no determination within 20 business days, you may file suit in federal district court.",
+    letterFn: "usFederal"
+  },
   "us-georgia": {
     label: "Georgia Open Records Act",
     law: "Georgia Open Records Act, O.C.G.A. § 50-18-70 et seq.",
@@ -392,6 +546,145 @@ const JURISDICTIONS = {
     ],
     deadlineNote: "Florida law requires 'prompt' production. If the agency is unreasonably slow, send a follow-up citing § 119.07(1)(a).",
     letterFn: "florida"
+  },
+  "us-illinois": {
+    label: "Illinois FOIA",
+    law: "Illinois Freedom of Information Act, 5 ILCS 140",
+    deptLabel: "State / Local Agency",
+    departments: ["Illinois State Police","Illinois Department of Public Health","Illinois Department of Education","Illinois Department of Transportation","Illinois Environmental Protection Agency","City of Chicago","City of Chicago — Chicago Police Department","City of Chicago — Office of the Mayor","Cook County","Other Illinois Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://www2.illinois.gov/sites/pac/Pages/default.aspx",
+    submitLabel: "IL Public Access Counselor \u2197",
+    infoTitle: "Illinois FOIA \u2014 Key Facts",
+    facts: [
+      "Public bodies must respond within <strong>5 business days</strong> (extendable by 5 business days with notice).",
+      "Requesters do <strong>not</strong> need to state a reason.",
+      "Commercial requesters may be charged search, review, and duplication fees; non-commercial requests receive 50 free pages.",
+      "Denial may be appealed to the <strong>Public Access Counselor (PAC)</strong> in the AG's office, or directly to circuit court.",
+      "Common exemptions: law enforcement, personal privacy, attorney–client privilege, deliberative process.",
+      "IL PAC: <a href='https://www2.illinois.gov/sites/pac/Pages/default.aspx' target='_blank' rel='noopener'>Illinois AG — Public Access</a>."
+    ],
+    deadlineNote: "If no response within 5 business days (or 10 with extension), send a follow-up or file a Request for Review with the Public Access Counselor.",
+    letterFn: "illinois"
+  },
+  "us-washington": {
+    label: "Washington Public Records Act",
+    law: "Washington Public Records Act, RCW 42.56",
+    deptLabel: "State / Local Agency",
+    departments: ["Washington State Patrol","Department of Health","Office of Superintendent of Public Instruction","Department of Transportation","Department of Ecology","City of Seattle","King County","Pierce County","Spokane County","Other Washington Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://www.atg.wa.gov/open-government",
+    submitLabel: "WA AG Open Government \u2197",
+    infoTitle: "Washington PRA \u2014 Key Facts",
+    facts: [
+      "Agencies must respond within <strong>5 business days</strong> (to acknowledge or provide an estimate).",
+      "One of the broadest public-records laws in the US — there is a <strong>strong public policy</strong> favouring disclosure.",
+      "Penalties for wrongful denial include a daily fine of $5–$100 per day plus attorney fees.",
+      "No reason required; any person may request.",
+      "Common exemptions: law enforcement, personal privacy, attorney–client privilege.",
+      "WA AG Open Government: <a href='https://www.atg.wa.gov/open-government' target='_blank' rel='noopener'>atg.wa.gov/open-government</a>."
+    ],
+    deadlineNote: "If no acknowledgement within 5 business days, or an unreasonable delay in production, you may file suit — courts may award penalties.",
+    letterFn: "washington"
+  },
+  "us-colorado": {
+    label: "Colorado CORA",
+    law: "Colorado Open Records Act, C.R.S. § 24-72-201 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["Colorado Bureau of Investigation","Colorado Department of Public Health and Environment","Colorado Department of Education","Colorado Department of Transportation","Colorado State Patrol","City and County of Denver","El Paso County","Jefferson County","Arapahoe County","Other Colorado Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://coag.gov/resources/colorado-open-records-act/",
+    submitLabel: "CO AG CORA Guide \u2197",
+    infoTitle: "Colorado CORA \u2014 Key Facts",
+    facts: [
+      "Custodians must allow inspection within <strong>3 business days</strong> (or 7 days for good cause).",
+      "Copies must be produced within a reasonable time after inspection.",
+      "Requesters do not need to state a reason.",
+      "Research fees may be charged for research time exceeding 1 hour.",
+      "Common exemptions: personnel files, law enforcement, attorney–client privilege, trade secrets.",
+      "CO AG CORA guide: <a href='https://coag.gov/resources/colorado-open-records-act/' target='_blank' rel='noopener'>coag.gov — CORA</a>."
+    ],
+    deadlineNote: "If not allowed to inspect within 3 business days (or 7 with good cause), you may seek a court order requiring disclosure.",
+    letterFn: "colorado"
+  },
+  "us-massachusetts": {
+    label: "Massachusetts Public Records Law",
+    law: "Massachusetts Public Records Law, G.L. c. 66, § 10",
+    deptLabel: "State / Local Agency",
+    departments: ["Massachusetts State Police","Department of Public Health","Department of Elementary and Secondary Education","Department of Transportation","Department of Environmental Protection","City of Boston","City of Worcester","City of Springfield","Middlesex County","Other Massachusetts Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://www.sec.state.ma.us/pre/preidx.htm",
+    submitLabel: "MA Supervisor of Records \u2197",
+    infoTitle: "Massachusetts Public Records \u2014 Key Facts",
+    facts: [
+      "Agencies must respond within <strong>10 business days</strong>.",
+      "Records supervisor can be appealed to if access is denied.",
+      "Requesters do not need to state a reason.",
+      "Fees are limited; indigent or public-interest requesters may seek waivers.",
+      "Common exemptions: personnel files, law enforcement, deliberative process, trade secrets.",
+      "MA Supervisor of Records: <a href='https://www.sec.state.ma.us/pre/preidx.htm' target='_blank' rel='noopener'>sec.state.ma.us/pre</a>."
+    ],
+    deadlineNote: "If no response within 10 business days, appeal to the Supervisor of Public Records; further appeal to Superior Court.",
+    letterFn: "massachusetts"
+  },
+  "us-pennsylvania": {
+    label: "Pennsylvania Right-to-Know Law",
+    law: "Pennsylvania Right-to-Know Law, 65 P.S. § 67.101 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["Pennsylvania State Police","Department of Health","Department of Education","Department of Transportation","Department of Environmental Protection","City of Philadelphia","City of Pittsburgh","Allegheny County","Philadelphia County","Other Pennsylvania Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://www.openrecords.pa.gov/",
+    submitLabel: "PA Open Records Portal \u2197",
+    infoTitle: "Pennsylvania RTKL \u2014 Key Facts",
+    facts: [
+      "Agencies must respond within <strong>5 business days</strong> (extendable by 30 business days with notice).",
+      "Presumption of openness — records are presumed public unless an exemption applies.",
+      "Appeal a denial to the <strong>Office of Open Records (OOR)</strong> within 15 business days.",
+      "Common exemptions: personal security, law enforcement, attorney–client privilege, trade secrets.",
+      "PA Office of Open Records: <a href='https://www.openrecords.pa.gov/' target='_blank' rel='noopener'>openrecords.pa.gov</a>."
+    ],
+    deadlineNote: "If no response within 5 business days (treated as denial), appeal to the Office of Open Records within 15 business days.",
+    letterFn: "pennsylvania"
+  },
+  "us-virginia": {
+    label: "Virginia FOIA",
+    law: "Virginia Freedom of Information Act, Va. Code § 2.2-3700 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["Virginia State Police","Virginia Department of Health","Virginia Department of Education","Virginia Department of Transportation","Virginia Environmental Protection Agency","City of Virginia Beach","City of Richmond","City of Norfolk","Fairfax County","Other Virginia Agency or Municipality"],
+    feeWaiverHint: "e.g., I am a journalist; disclosure serves the public interest",
+    submitUrl: "https://www.dhr.virginia.gov/foia/",
+    submitLabel: "VA FOIA Council \u2197",
+    infoTitle: "Virginia FOIA \u2014 Key Facts",
+    facts: [
+      "Public bodies must respond within <strong>5 business days</strong>.",
+      "No reason required; any citizen of the Commonwealth may request.",
+      "Fees for search, retrieval, and copying may be charged; no fee for first hour of staff time.",
+      "Appeal to the <strong>Virginia FOIA Council</strong> (advisory) or file suit in general district or circuit court.",
+      "Common exemptions: personnel records, law enforcement, attorney–client privilege, trade secrets.",
+      "VA FOIA Council: <a href='https://foiacouncil.dls.virginia.gov/' target='_blank' rel='noopener'>foiacouncil.dls.virginia.gov</a>."
+    ],
+    deadlineNote: "If no response within 5 business days, the request is deemed denied — you may file suit in circuit court.",
+    letterFn: "virginia"
+  },
+  "us-michigan": {
+    label: "Michigan FOIA",
+    law: "Michigan Freedom of Information Act, MCL 15.231 et seq.",
+    deptLabel: "State / Local Agency",
+    departments: ["Michigan State Police","Michigan Department of Health and Human Services","Michigan Department of Education","Michigan Department of Transportation","Michigan Department of Environment, Great Lakes, and Energy","City of Detroit","City of Grand Rapids","City of Lansing","Wayne County","Other Michigan Agency or Municipality"],
+    feeWaiverHint: "e.g., I am indigent, or disclosure is in the public interest",
+    submitUrl: "https://www.michigan.gov/ag/divisions/open-government-initiative",
+    submitLabel: "MI AG Open Government \u2197",
+    infoTitle: "Michigan FOIA \u2014 Key Facts",
+    facts: [
+      "Public bodies must respond within <strong>5 business days</strong> (extendable by 10 business days).",
+      "Fee waivers available for indigent individuals and nonprofit media organisations.",
+      "Requesters do not need to state a reason.",
+      "Appeal a denial within 180 days to the head of the public body, then to circuit court.",
+      "Common exemptions: law enforcement, personal privacy, attorney–client privilege, trade secrets.",
+      "MI AG Open Government: <a href='https://www.michigan.gov/ag/divisions/open-government-initiative' target='_blank' rel='noopener'>michigan.gov/ag — Open Government</a>."
+    ],
+    deadlineNote: "If no response within 5 business days (15 with extension), appeal to the head of the public body or file suit in circuit court.",
+    letterFn: "michigan"
   },
   "uk": {
     label: "United Kingdom FOIA 2000",
@@ -579,6 +872,48 @@ function LETTERS() { return {
     const datesLine = dates ? "\nDate range of records: " + dates : "";
     const waiverPara = waiver ? "\nI request a waiver or reduction of any fees. " + waiver + ".\n" : "";
     return todayStr() + "\n\nCustodian of Public Records\n" + dept + "\nState of Florida\n\nRE: Public Records Request — Ch. 119, Fla. Stat.\n\nDear Custodian of Public Records:\n\nPursuant to Chapter 119, Florida Statutes (Florida's Public Records Law), I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nPlease provide prompt access to these records as required by § 119.07(1)(a), Fla. Stat. If any records are exempt from disclosure, please cite the specific statutory exemption and provide all non-exempt portions.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  illinois({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI respectfully request a waiver of all fees. " + waiver + ". Disclosure of these records serves the public interest.\n" : "";
+    return todayStr() + "\n\nFOIA Officer\n" + dept + "\nState of Illinois\n\nRE: Freedom of Information Act Request — 5 ILCS 140\n\nDear FOIA Officer:\n\nPursuant to the Illinois Freedom of Information Act, 5 ILCS 140, I hereby request access to and copies of the following public records maintained by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please identify each withheld record, cite the specific exemption(s) under 5 ILCS 140/7 or 140/7.5 relied upon, and provide the factual basis for applying that exemption. Please release all reasonably segregable, non-exempt portions.\n\nPlease acknowledge receipt of this request and respond within 5 business days as required by 5 ILCS 140/3(d).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  washington({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ". Disclosure serves the public interest.\n" : "";
+    return todayStr() + "\n\nPublic Records Officer\n" + dept + "\nState of Washington\n\nRE: Public Records Act Request — RCW 42.56\n\nDear Public Records Officer:\n\nPursuant to the Washington Public Records Act, RCW 42.56, I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each withheld record, cite the specific exemption under RCW 42.56 or other applicable law, and explain why the exemption applies. Please provide all reasonably segregable, non-exempt portions.\n\nPlease acknowledge receipt of this request within 5 business days as required by RCW 42.56.520.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  colorado({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any research or copying fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nCustodian of Records\n" + dept + "\nState of Colorado\n\nRE: Colorado Open Records Act Request — C.R.S. § 24-72-201 et seq.\n\nDear Custodian of Records:\n\nPursuant to the Colorado Open Records Act (CORA), C.R.S. § 24-72-201 et seq., I hereby request the opportunity to inspect and obtain copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please cite the specific statutory basis for denial under C.R.S. § 24-72-204 and provide all reasonably segregable, non-exempt portions.\n\nPlease allow inspection within 3 business days as required by C.R.S. § 24-72-203(1)(a).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  massachusetts({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nRecords Access Officer\n" + dept + "\nCommonwealth of Massachusetts\n\nRE: Public Records Request — G.L. c. 66, § 10\n\nDear Records Access Officer:\n\nPursuant to the Massachusetts Public Records Law, G.L. c. 66, § 10, I hereby request access to and copies of the following public records maintained by " + dept + ":\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record, cite the specific exemption under G.L. c. 4, § 7(26) or other applicable law, and provide all reasonably segregable, non-exempt portions.\n\nPlease respond within 10 business days as required by G.L. c. 66, § 10(b).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  pennsylvania({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nOpen Records Officer\n" + dept + "\nCommonwealth of Pennsylvania\n\nRE: Right-to-Know Law Request — 65 P.S. § 67.101 et seq.\n\nDear Open Records Officer:\n\nPursuant to the Pennsylvania Right-to-Know Law, 65 P.S. § 67.101 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please cite the specific exemption under 65 P.S. § 67.708 and state the factual basis for each denial. Please provide all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by 65 P.S. § 67.901.\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  virginia({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of any fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nFOIA Officer\n" + dept + "\nCommonwealth of Virginia\n\nRE: Freedom of Information Act Request — Va. Code § 2.2-3700 et seq.\n\nDear FOIA Officer:\n\nPursuant to the Virginia Freedom of Information Act, Va. Code § 2.2-3700 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld, please identify each record, cite the specific exemption under Va. Code § 2.2-3705 et seq., and release all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by Va. Code § 2.2-3704(B).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
+  },
+  michigan({ name, email, phone, dept, desc, dates, format, waiver }) {
+    const phoneLine = phone ? "\nPhone: " + phone : "";
+    const datesLine = dates ? "\nDate range of records: " + dates : "";
+    const waiverPara = waiver ? "\nI request a waiver of all fees. " + waiver + ".\n" : "";
+    return todayStr() + "\n\nFOIA Coordinator\n" + dept + "\nState of Michigan\n\nRE: Freedom of Information Act Request — MCL 15.231 et seq.\n\nDear FOIA Coordinator:\n\nPursuant to the Michigan Freedom of Information Act, MCL 15.231 et seq., I hereby request access to and copies of the following public records:\n\n" + desc + datesLine + "\n\nI request that responsive records be provided in " + format + ".\n" + waiverPara + "\nIf any records are withheld in whole or in part, please provide a written explanation identifying the specific exemption(s) under MCL 15.243 relied upon and release all reasonably segregable, non-exempt portions.\n\nPlease respond within 5 business days as required by MCL 15.235(2).\n\nSincerely,\n\n" + name + "\nEmail: " + email + phoneLine;
   },
   uk({ name, email, phone, dept, desc, dates, format }) {
     const phoneLine = phone ? "\nTelephone: " + phone : "";
