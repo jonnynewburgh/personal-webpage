@@ -220,6 +220,8 @@
   .bar-fill.vitality { background: linear-gradient(90deg, #0066ff, #00aaff); }
   .bar-fill.history { background: linear-gradient(90deg, #aa4400, #ff8800); }
   .bar-fill.income { background: linear-gradient(90deg, #884400, #ffdd00); }
+  .bar-fill.diversity { background: linear-gradient(90deg, #660099, #cc44ff); }
+  .bar-fill.displacement { background: linear-gradient(90deg, #880000, #ff3344); }
 
   /* ===== CENTER MAP ===== */
   #map-area {
@@ -897,30 +899,32 @@
 <!-- INTRO SCREEN -->
 <div id="intro-screen">
   <div id="intro-title">COMMUNITY<br>DEVELOPER<br>TYCOON</div>
-  <div id="intro-subtitle">FINANCE EDITION v1.0</div>
+  <div id="intro-subtitle">THE EAST LAKE CHALLENGE · v2.0</div>
   <div class="intro-badge-row">
     <div class="intro-badge nmtc">
       <span class="badge-icon">🏢</span>
       <div class="badge-name">NMTC</div>
-      New Markets Tax Credits for low-income communities
+      New commercial &amp; community projects in distressed areas
     </div>
     <div class="intro-badge htc">
       <span class="badge-icon">🏛️</span>
       <div class="badge-name">HTC</div>
-      Historic Tax Credits to restore old buildings
+      Rehabilitate certified historic buildings
     </div>
     <div class="intro-badge cdfi">
       <span class="badge-icon">🏦</span>
       <div class="badge-name">CDFI</div>
-      Mission-driven lenders for underserved markets
+      Affordable housing, small biz &amp; anti-displacement tools
     </div>
   </div>
   <div id="intro-desc">
+    In 1995, <span class="hi">East Lake, Atlanta</span> was one of America's most dangerous neighborhoods.<br>
+    Crime dropped 95%. Schools transformed. But <span class="hi">83% of original families never came back.</span><br><br>
     You are the <span class="hi">Community Development Director</span> of Opportunity City.<br>
-    Use <span class="hi">NMTCs, HTCs, and CDFI loans</span> to revitalize your community.<br>
-    Pick the <em>right tool</em> for each project — or it fails!
+    Use NMTCs, HTCs, and CDFIs wisely — but watch the <span class="hi" style="color:#ff3344">Displacement meter</span>.<br>
+    A thriving community means nothing if the original residents aren't in it.
   </div>
-  <button id="start-btn" onclick="startGame()">▶ START GAME</button>
+  <button id="start-btn" onclick="startGame()">▶ START BUILDING</button>
 </div>
 
 <!-- END GAME SCREEN -->
@@ -1114,9 +1118,11 @@ const BUILDING_TYPES = {
     vitality: 15,
     history: 0,
     income: 20,
+    diversity: -5,
+    displacement: 12,
     score: 250,
-    desc: 'A commercial development in a low-income census tract. NMTCs attract private equity by giving investors a 39% federal tax credit over 7 years.',
-    why: 'NMTC is perfect here: new commercial development in a distressed community = textbook NMTC use case.',
+    desc: 'A commercial development in a low-income census tract. NMTCs attract private equity by giving investors a 39% federal tax credit over 7 years. ⚠️ Watch displacement: commercial success can raise property values and price out residents.',
+    why: 'NMTC is perfect here: new commercial development in a distressed community = textbook NMTC use case. Pair with affordable housing to prevent displacement!',
     wrong_tool: {
       htc: 'This is a NEW building, not a historic rehabilitation. HTC requires existing historic structures!',
       cdfi: 'CDFIs provide loans — great for small pieces, but this project needs equity financing at scale that NMTCs unlock.'
@@ -1132,12 +1138,34 @@ const BUILDING_TYPES = {
     vitality: 30,
     history: 5,
     income: 10,
+    diversity: 15,
+    displacement: -5,
     score: 200,
-    desc: 'A health clinic + community facility serving low-income residents. Qualifies for NMTCs as a community service facility in a distressed tract.',
-    why: 'NMTCs can finance community service facilities — health, education, food access — in low-income areas. This is a NMTC sweet spot!',
+    desc: 'A health clinic + community facility serving residents of ALL income levels. Qualifies for NMTCs as a community service facility in a distressed tract.',
+    why: 'NMTCs can finance community service facilities — health, education, food access — in low-income areas. This is a NMTC sweet spot, and it serves existing residents!',
     wrong_tool: {
       htc: 'No historic structure to rehabilitate here. HTC is about saving old buildings, not building new ones.',
       cdfi: 'CDFIs could contribute a loan, but this project needs the deep equity subsidy that only NMTCs provide.'
+    }
+  },
+  nmtc_charter_school: {
+    name: 'Charter School',
+    icon: '🎓',
+    label: 'Charter',
+    cost: 2,
+    tool: 'nmtc',
+    jobs: 20,
+    vitality: 30,
+    history: 5,
+    income: 15,
+    diversity: 25,
+    displacement: -8,
+    score: 260,
+    desc: 'A cradle-to-college charter school open to ALL children in the community, regardless of income. Inspired by Drew Charter School in East Lake, Atlanta — where 5th grade math proficiency went from 5% to 90%+.',
+    why: 'Charter schools in distressed communities are a textbook NMTC use case: community service facility in a qualifying census tract. Education anchors the whole community!',
+    wrong_tool: {
+      htc: 'Not a historic building — HTC requires a certified historic structure to rehabilitate.',
+      cdfi: 'A CDFI loan can help, but a school needs the deep equity subsidy that NMTCs provide to make the deal work.'
     }
   },
   htc_residential: {
@@ -1150,9 +1178,11 @@ const BUILDING_TYPES = {
     vitality: 20,
     history: 35,
     income: 15,
+    diversity: 10,
+    displacement: 8,
     score: 220,
-    desc: 'A 1920s apartment building on the National Register of Historic Places. Needs full rehabilitation. HTCs give investors a 20% federal credit on qualified rehab expenses.',
-    why: 'HTCs are specifically designed for this: qualified rehabilitation of certified historic structures. Perfect fit!',
+    desc: 'A 1920s apartment building on the National Register. HTCs give investors a 20% federal credit on qualified rehab expenses. ⚠️ Rehabbed units can attract higher-income tenants — plan for affordability restrictions.',
+    why: 'HTCs are specifically designed for this: qualified rehabilitation of certified historic structures. Include income restrictions to protect residents!',
     wrong_tool: {
       nmtc: 'NMTCs require a commercial purpose and are not designed for residential historic rehab. Wrong tool!',
       cdfi: 'A CDFI loan alone won\'t bridge the financing gap. Historic rehab is expensive — you need the HTC equity subsidy.'
@@ -1168,9 +1198,11 @@ const BUILDING_TYPES = {
     vitality: 25,
     history: 40,
     income: 25,
+    diversity: 0,
+    displacement: 12,
     score: 300,
-    desc: 'A 19th century market hall listed on the National Register. Converting to mixed retail + community space. Both State HTC (varies) + Federal HTC (20%) apply!',
-    why: 'Historic + commercial = HTC goldmine. State credits can stack with federal credits, making this very financeable.',
+    desc: 'A 19th century market hall listed on the National Register. Converting to mixed retail + community space. Both State HTC + Federal HTC (20%) apply! ⚠️ Popular markets can gentrify surrounding streets.',
+    why: 'Historic + commercial = HTC goldmine. State credits stack with federal credits — but anchor with local businesses to keep the community mix.',
     wrong_tool: {
       nmtc: 'Could stack with HTC in some deals, but NMTC alone doesn\'t address the historic rehab cost gap.',
       cdfi: 'CDFI loan is a good complement but not the primary tool — the HTC equity is what makes the deal work.'
@@ -1186,9 +1218,11 @@ const BUILDING_TYPES = {
     vitality: 35,
     history: 0,
     income: 10,
-    score: 180,
-    desc: 'New affordable rental housing for families earning under 80% AMI. Banks won\'t finance this — CDFI mortgage lending fills the gap with flexible, below-market terms.',
-    why: 'CDFIs specialize in affordable housing lending where conventional banks won\'t go. Mission-driven + flexible underwriting!',
+    diversity: 25,
+    displacement: -20,
+    score: 190,
+    desc: 'New affordable rental housing for families earning under 80% AMI. Banks won\'t finance this — CDFI lending fills the gap. The single most powerful anti-displacement tool available.',
+    why: 'CDFIs specialize in affordable housing lending where conventional banks won\'t go. Critical for keeping original residents in place as the neighborhood improves!',
     wrong_tool: {
       nmtc: 'NMTCs cannot be used for rental housing. They require active business income, which residential rental doesn\'t qualify.',
       htc: 'No historic structure here. HTCs only apply to certified historic buildings.'
@@ -1204,12 +1238,34 @@ const BUILDING_TYPES = {
     vitality: 20,
     history: 5,
     income: 15,
+    diversity: 20,
+    displacement: -10,
     score: 160,
-    desc: 'A CDFI-funded small business lending program for micro-enterprises owned by low-income and minority entrepreneurs who can\'t access conventional credit.',
-    why: 'CDFIs are the original mission-driven lenders. Small biz in underserved markets is their bread and butter.',
+    desc: 'A CDFI-funded small business lending program for micro-enterprises owned by low-income and minority entrepreneurs who can\'t access conventional credit. Keeps local ownership in place as neighborhoods improve.',
+    why: 'CDFIs are the original mission-driven lenders. Local small business ownership is the strongest defense against displacement — owners have equity, not just leases.',
     wrong_tool: {
       nmtc: 'These loans are too small for NMTC deals (typically $1M+ minimum). NMTCs have high transaction costs.',
       htc: 'HTCs are only for historic building rehabilitation. No connection to small business lending.'
+    }
+  },
+  cdfi_land_trust: {
+    name: 'Community Land Trust',
+    icon: '🌱',
+    label: 'Land Trust',
+    cost: 1.5,
+    tool: 'cdfi',
+    jobs: 5,
+    vitality: 20,
+    history: 0,
+    income: 5,
+    diversity: 30,
+    displacement: -30,
+    score: 210,
+    desc: 'A nonprofit acquires land and keeps it permanently affordable through a ground lease model. Families build equity but the land stays in community hands forever — immune to gentrification. The strongest anti-displacement tool ever invented.',
+    why: 'Community Land Trusts are CDFI territory: mission-driven, below-market, permanently affordable. Once land is in a CLT, it can NEVER be gentrified away from the community.',
+    wrong_tool: {
+      nmtc: 'NMTCs are for active businesses, not land trust structures. The permanent affordability covenant disqualifies NMTC use.',
+      htc: 'HTCs require historic buildings, not land acquisition. CLTs are a CDFI innovation.'
     }
   }
 };
@@ -1222,7 +1278,7 @@ const FINANCE_TOOLS = {
     color: '#00ff88',
     initial: 3,
     desc: 'Attracts private investment to low-income communities via 39% federal tax credit over 7 years. For commercial/community projects in distressed tracts.',
-    compatible: ['nmtc_commercial', 'nmtc_community'],
+    compatible: ['nmtc_commercial', 'nmtc_community', 'nmtc_charter_school'],
     funFact: 'Every $1 of NMTC subsidy attracts ~$7 in private investment!'
   },
   htc: {
@@ -1242,7 +1298,7 @@ const FINANCE_TOOLS = {
     color: '#00aaff',
     initial: 4,
     desc: 'Mission-driven lenders certified by the CDFI Fund. Flexible loans for housing, small biz, and community facilities where banks won\'t lend.',
-    compatible: ['cdfi_housing', 'cdfi_small_biz'],
+    compatible: ['cdfi_housing', 'cdfi_small_biz', 'cdfi_land_trust'],
     funFact: 'CDFIs deployed $222B in 2022 alone to underserved communities!'
   }
 };
@@ -1347,6 +1403,56 @@ const EVENTS = [
       { text: '🏛️ Rush to certify two historic buildings', effect: { htc: +2, score: +150, history: +15 }, result: 'Two more buildings enter the historic district pipeline. HTC allocation surges!' },
       { text: '📋 Lobby for expanded eligibility', effect: { score: +90, vitality: +10 }, result: 'Your advocacy expands which buildings qualify — a win for the whole region.' }
     ]
+  },
+  {
+    id: 'ev_luxury_developer',
+    title: '💰 LUXURY DEVELOPER APPROACHES',
+    body: 'A major real estate firm offers $4M to build luxury condos in your community. The money would fund two more affordable projects — but the condos will spike property values and displace renters. Sound familiar? This is exactly what happened around East Lake in Atlanta.',
+    type: 'risk',
+    choices: [
+      { text: '💸 Accept — Take the money', effect: { budget: +4, displacement: +30, diversity: -20, score: +50 }, result: 'The condos rise. Property values spike. Three blocks away, ten families get eviction notices. The statistics look great. The community... changed.' },
+      { text: '✊ Reject — Protect residents', effect: { score: +120, diversity: +10, displacement: -5 }, result: 'Word spreads: Opportunity City fights for its people. Community trust surges. Organizers call you a hero. Investors call you a fool. You call it Tuesday.' }
+    ]
+  },
+  {
+    id: 'ev_nmtc_compliance_end',
+    title: '📅 NMTC COMPLIANCE PERIOD ENDS',
+    body: 'Your 7-year NMTC compliance period is up. Investors who provided equity are now entitled to exit. They can sell their interest — potentially to buyers who don\'t share your mission. In East Lake, the golf club revenue model kept foundation control. What\'s your strategy?',
+    type: 'risk',
+    choices: [
+      { text: '🤝 Buy out investors — keep community control', effect: { budget: -2, score: +150, diversity: +10, displacement: -10 }, result: 'Cost you $2M, but you own it. No outside investor can ever extract value from this community again. This is the East Lake Foundation model.' },
+      { text: '📈 Let investors exit freely', effect: { budget: +1, displacement: +20, diversity: -10, score: -30 }, result: 'Investors cashed out. The new owners have different priorities. Rents are rising. The 7-year NMTC period delivered, then left. This is the cautionary tale.' }
+    ]
+  },
+  {
+    id: 'ev_resident_coalition',
+    title: '📢 ORIGINAL RESIDENTS SPEAK OUT',
+    body: 'A coalition of original residents has organized. Only 16% of East Lake\'s original families returned after redevelopment — they\'re demanding Opportunity City do better. They want a Community Benefit Agreement: guaranteed return rights, affordable unit set-asides, anti-displacement protections. Your choice will define the community.',
+    type: 'risk',
+    choices: [
+      { text: '📝 Sign the Community Benefit Agreement', effect: { score: +100, diversity: +20, displacement: -15, vitality: +10 }, result: 'The agreement is signed and celebrated. Residents become your strongest partners — they know every block, every family, every need. This is how you build WITH a community, not for it.' },
+      { text: '🏛️ Promise to "consider" their concerns', effect: { displacement: +10, diversity: -10, score: -50 }, result: 'Residents aren\'t fooled. "Consider" means "no." Three families file injunctions. A New York Times reporter shows up. Turns out, vague promises have a real cost.' }
+    ]
+  },
+  {
+    id: 'ev_anchor_institution',
+    title: '⛳ ANCHOR INSTITUTION DEAL',
+    body: 'A wealthy foundation wants to partner: they\'ll restore the historic community golf course and donate 40% of annual revenue ($2M/yr) to your foundation — just like Tom Cousins did at East Lake, which funded Drew Charter School and transformed the neighborhood. The catch: it will attract wealthy visitors and raise nearby property values.',
+    type: 'opportunity',
+    choices: [
+      { text: '⛳ Accept with Community Benefit Agreement', effect: { budget: +2, score: +180, displacement: +8, vitality: +20, diversity: +5 }, result: 'The East Lake model, done right. Revenue funds the school, the health clinic, the jobs program. Some displacement pressure, but community institutions are strong enough to absorb it.' },
+      { text: '🏘️ Counter-offer: community recreation center instead', effect: { budget: +0.5, score: +100, diversity: +20, displacement: -5, vitality: +25 }, result: 'Smaller budget, bigger community impact. The rec center serves existing residents directly. No golf — but everyone can use a basketball court.' }
+    ]
+  },
+  {
+    id: 'ev_displacement_warning',
+    title: '🚨 DISPLACEMENT CRISIS',
+    body: 'Longtime residents are being pushed out faster than they can be replaced. Local organizers are documenting dozens of forced moves. Your financing tools brought investment — but investment without protection is just gentrification with better press releases.',
+    type: 'risk',
+    choices: [
+      { text: '🆘 Emergency: fund Community Land Trust', effect: { cdfi: +1, displacement: -25, diversity: +15, score: +80, budget: -0.5 }, result: 'Emergency CLT funding deployed. Land locked in permanent affordability. The displacement curve bends. Some families are saved. Some weren\'t.' },
+      { text: '📊 Commission a study first', effect: { displacement: +15, diversity: -10, score: -60 }, result: 'The study takes six months. Fifty more families leave. The study confirms: yes, displacement happened. Thanks for the confirmation.' }
+    ]
   }
 ];
 
@@ -1363,7 +1469,7 @@ let state = {
   score: 0,
   round: 1,
   tools: { nmtc: 3, htc: 3, cdfi: 4 },
-  metrics: { jobs: 0, vitality: 20, history: 10, income: 30 },
+  metrics: { jobs: 0, vitality: 20, history: 10, income: 30, diversity: 30, displacement: 10 },
   grid: [],          // Array of 16 cells
   selectedBuildType: null,
   selectedFinanceTool: null,
@@ -1465,6 +1571,18 @@ function checkAchievements() {
   }
   if (state.score >= 1000 && !state.achievements.includes('grand')) {
     unlocked.push('grand'); showAchievement('1000 points scored!');
+  }
+  if (state.metrics.displacement <= 20 && state.buildingsPlaced >= 3 && !state.achievements.includes('anti_disp')) {
+    unlocked.push('anti_disp'); showAchievement('Low Displacement Hero!');
+  }
+  if (state.metrics.diversity >= 70 && !state.achievements.includes('diverse')) {
+    unlocked.push('diverse'); showAchievement('Diverse Community Built!');
+  }
+  if (state.buildingsPlaced >= 2 &&
+      state.grid.filter(c => c.built && c.type && BUILDING_TYPES[c.type].tool === 'cdfi').length >= 1 &&
+      state.grid.filter(c => c.built && c.type && BUILDING_TYPES[c.type].tool === 'nmtc').length >= 1 &&
+      !state.achievements.includes('balanced')) {
+    unlocked.push('balanced'); showAchievement('Balanced Portfolio!');
   }
   unlocked.forEach(a => state.achievements.push(a));
 }
@@ -1639,21 +1757,38 @@ function renderBuildMenu() {
 function renderMetrics() {
   const container = $('metrics-display');
   const m = state.metrics;
-  const bars = [
-    { key: 'jobs', label: 'Jobs', cls: 'jobs', val: Math.min(100, m.jobs / 2), display: m.jobs },
+
+  // Normal bars (low = bad)
+  const normalBars = [
     { key: 'vitality', label: 'Vitality', cls: 'vitality', val: m.vitality, display: m.vitality + '%' },
     { key: 'history', label: 'Heritage', cls: 'history', val: m.history, display: m.history + '%' },
-    { key: 'income', label: 'Income', cls: 'income', val: m.income, display: m.income + '%' }
+    { key: 'income', label: 'Income', cls: 'income', val: m.income, display: m.income + '%' },
+    { key: 'diversity', label: 'Diversity', cls: 'diversity', val: m.diversity, display: m.diversity + '%' },
   ];
 
-  container.innerHTML = bars.map(b => {
+  const normalHTML = normalBars.map(b => {
     const danger = b.val < 15;
     return `
     <div class="metric-bar">
       <div class="metric-label${danger ? ' danger' : ''}"><span>${b.label}${danger ? ' ⚠️' : ''}</span><span>${b.display}</span></div>
       <div class="bar-track"><div class="bar-fill ${b.cls}${danger ? ' danger' : ''}" style="width:${Math.min(100,b.val)}%"></div></div>
-    </div>
-  `}).join('');
+    </div>`;
+  }).join('');
+
+  // Displacement bar (high = bad — inverted logic)
+  const d = m.displacement;
+  const dispDanger = d >= 60;
+  const dispWarn = d >= 40;
+  const dispLabel = dispDanger ? '🚨 DISPLACEMENT' : dispWarn ? '⚠️ Displacement' : 'Displacement';
+  const dispColor = dispDanger ? 'var(--accent-red)' : dispWarn ? 'var(--accent-orange)' : 'var(--text-dim)';
+  const dispHTML = `
+    <div class="metric-bar" style="margin-top:6px;border-top:1px solid #334;padding-top:6px">
+      <div class="metric-label" style="color:${dispColor}"><span>${dispLabel}</span><span style="color:${dispColor}">${d}% risk</span></div>
+      <div class="bar-track"><div class="bar-fill displacement" style="width:${Math.min(100,d)}%"></div></div>
+      <div style="font-size:11px;color:#556;margin-top:2px">Keep this LOW ↓</div>
+    </div>`;
+
+  container.innerHTML = normalHTML + dispHTML;
 }
 
 function renderFinanceTools() {
@@ -1821,8 +1956,15 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
     state.metrics.vitality = Math.min(100, state.metrics.vitality + bt.vitality);
     state.metrics.history = Math.min(100, state.metrics.history + bt.history);
     state.metrics.income = Math.min(100, state.metrics.income + bt.income);
+    state.metrics.diversity = Math.min(100, Math.max(0, state.metrics.diversity + (bt.diversity || 0)));
+    state.metrics.displacement = Math.min(100, Math.max(0, state.metrics.displacement + (bt.displacement || 0)));
     state.score += totalScore;
     state.buildingsPlaced++;
+
+    // Displacement warning
+    if (bt.displacement > 0 && state.metrics.displacement >= 50) {
+      addLog(`⚠️ Displacement risk now ${state.metrics.displacement}% — consider anti-displacement tools!`, 'warn');
+    }
 
     const tool = FINANCE_TOOLS[bt.tool];
 
@@ -1914,6 +2056,21 @@ function advanceRound() {
     state.score = Math.max(0, state.score - 30);
     addLog('⚠️ Low income hurting score! -30 pts', 'warn');
   }
+  // High displacement: diversity erodes and score bleeds
+  if (state.metrics.displacement >= 75) {
+    state.metrics.diversity = Math.max(0, state.metrics.diversity - 10);
+    state.score = Math.max(0, state.score - 50);
+    addLog('🚨 CRISIS: Displacement destroying community diversity! -50 pts', 'bad');
+  } else if (state.metrics.displacement >= 55) {
+    state.metrics.diversity = Math.max(0, state.metrics.diversity - 5);
+    addLog('⚠️ Rising displacement is eroding community diversity.', 'warn');
+  }
+  // Trigger displacement crisis event if things are very bad
+  if (state.metrics.displacement >= 70 && !state.achievements.includes('disp_event_fired')) {
+    state.achievements.push('disp_event_fired');
+    const crisisEv = EVENTS.find(e => e.id === 'ev_displacement_warning');
+    if (crisisEv) { setTimeout(() => { Audio.event(); showEvent(crisisEv); }, 400); return; }
+  }
 
   if (state.round > TOTAL_ROUNDS) {
     Audio.levelUp();
@@ -1949,15 +2106,17 @@ function showEvent(ev) {
 function applyEventChoice(ev, choice) {
   const fx = choice.effect;
 
-  if (fx.budget)   state.budget   = Math.max(0, state.budget + fx.budget);
-  if (fx.nmtc)     state.tools.nmtc = Math.max(0, state.tools.nmtc + fx.nmtc);
-  if (fx.htc)      state.tools.htc  = Math.max(0, state.tools.htc  + fx.htc);
-  if (fx.cdfi)     state.tools.cdfi = Math.max(0, state.tools.cdfi + fx.cdfi);
-  if (fx.jobs)     state.metrics.jobs += fx.jobs;
-  if (fx.vitality) state.metrics.vitality = Math.min(100, Math.max(0, state.metrics.vitality + fx.vitality));
-  if (fx.history)  state.metrics.history  = Math.min(100, Math.max(0, state.metrics.history  + fx.history));
-  if (fx.income)   state.metrics.income   = Math.min(100, Math.max(0, state.metrics.income   + fx.income));
-  if (fx.score)    state.score = Math.max(0, state.score + fx.score);
+  if (fx.budget)       state.budget   = Math.max(0, state.budget + fx.budget);
+  if (fx.nmtc)         state.tools.nmtc = Math.max(0, state.tools.nmtc + fx.nmtc);
+  if (fx.htc)          state.tools.htc  = Math.max(0, state.tools.htc  + fx.htc);
+  if (fx.cdfi)         state.tools.cdfi = Math.max(0, state.tools.cdfi + fx.cdfi);
+  if (fx.jobs)         state.metrics.jobs += fx.jobs;
+  if (fx.vitality)     state.metrics.vitality    = Math.min(100, Math.max(0, state.metrics.vitality    + fx.vitality));
+  if (fx.history)      state.metrics.history     = Math.min(100, Math.max(0, state.metrics.history     + fx.history));
+  if (fx.income)       state.metrics.income      = Math.min(100, Math.max(0, state.metrics.income      + fx.income));
+  if (fx.diversity)    state.metrics.diversity   = Math.min(100, Math.max(0, state.metrics.diversity   + fx.diversity));
+  if (fx.displacement) state.metrics.displacement= Math.min(100, Math.max(0, state.metrics.displacement+ fx.displacement));
+  if (fx.score)        state.score = Math.max(0, state.score + fx.score);
 
   addLog(`Event: ${choice.result.substring(0, 70)}`, 'info');
 
@@ -1986,52 +2145,107 @@ function showFinanceLearnModal(toolKey) {
   );
 }
 
+function getOutcome() {
+  const d = state.metrics.displacement;
+  const div = state.metrics.diversity;
+  const v = state.metrics.vitality;
+  const s = state.score;
+  if (d >= 75) return 'gentrified';
+  if (s >= 900 && d <= 35 && div >= 55 && v >= 60) return 'purpose_built';
+  if (s >= 700 && d >= 55) return 'investor_paradise';
+  if (s >= 600 && d < 55) return 'revitalized';
+  if (d < 30 && s < 500) return 'preserved';
+  return 'struggling';
+}
+
+const OUTCOMES = {
+  purpose_built: {
+    title: '🌟 PURPOSE BUILT COMMUNITY',
+    color: '#00ff88',
+    summary: `You did what Tom Cousins dreamed of — and avoided the trap he fell into.<br><br>
+    East Lake, Atlanta saw crime drop 95% and school performance soar. But 83% of original families never returned. <strong>You kept displacement below 35%</strong>. That's the difference between revitalization and replacement.<br><br>
+    <em style="color:#cc44ff">This is what "building WITH communities, not FOR them" actually looks like.</em>`
+  },
+  gentrified: {
+    title: '💸 GENTRIFICATION WON',
+    color: '#ff3344',
+    summary: `The statistics look great. The community changed.<br><br>
+    Between 2000–2015, East Lake's Black population fell 31% while property values rose 230%. The neighborhood "improved" — but for whom? Your financing tools attracted investment without protecting the people who were already there.<br><br>
+    <em style="color:#ff8800">"Changes of people, not for people." — Atlanta Studies Journal, on East Lake</em>`
+  },
+  investor_paradise: {
+    title: '📈 INVESTORS EXTRACTED VALUE',
+    color: '#ff8800',
+    summary: `High score. High displacement. The 7-year NMTC compliance period ended, investors cashed out, and the community wealth flowed upward.<br><br>
+    Tax credits are powerful — but they come with a 7-year clock. Without permanent affordability tools like Community Land Trusts and resident buy-out agreements, investment leaves as fast as it arrives.<br><br>
+    <em style="color:#8888aa">Next time: pair every commercial investment with an anti-displacement tool.</em>`
+  },
+  revitalized: {
+    title: '🏙️ COMMUNITY REVITALIZED',
+    color: '#00aaff',
+    summary: `Real improvement — with some displacement. Better than East Lake's worst critics feared, not as good as its best advocates hoped.<br><br>
+    You used NMTCs, HTCs, and CDFIs effectively. A few more Community Land Trusts and resident agreements could have made this a model for the nation.<br><br>
+    <em style="color:#8888aa">Good work. Keep pushing. The community's story isn't over.</em>`
+  },
+  preserved: {
+    title: '🤝 COMMUNITY PRESERVED',
+    color: '#cc44ff',
+    summary: `You protected residents from displacement — but couldn't attract enough investment to transform the community.<br><br>
+    Anti-displacement tools are necessary. But they're not sufficient. The challenge is building economic vitality AND protecting the people who were there first. That tension is the whole game.<br><br>
+    <em style="color:#8888aa">Try pairing protective tools with strategic commercial investments.</em>`
+  },
+  struggling: {
+    title: '😔 OPPORTUNITY CITY STRUGGLES',
+    color: '#ff3344',
+    summary: `Opportunity City needed a champion. The financing tools were there: NMTCs for commercial projects in distressed tracts, HTCs for historic rehab, CDFIs for affordable housing and small business lending where banks won't go.<br><br>
+    The real East Lake story took 25 years, $250M, and a golf tournament. It's hard. But the tools exist.<br><br>
+    <em style="color:#8888aa">Try again — pair every commercial investment with an affordable housing project.</em>`
+  }
+};
+
 function endGame() {
   state.gameOver = true;
   const grade = getGrade();
+  const outcome = getOutcome();
+  const oc = OUTCOMES[outcome];
   const es = $('endgame-screen');
   es.classList.add('show');
 
-  const win = state.score >= 600;
   const title = $('endgame-title');
+  title.innerHTML = oc.title;
+  title.style.color = oc.color;
 
   const gradeEmoji = { 'A+': '🏆', A: '🌟', B: '👍', C: '😐', D: '😟', F: '💀' };
-  title.textContent = win ? '🏆 CITY REVITALIZED!' : '😔 COMMUNITY STRUGGLES...';
-  title.style.color = win ? '#00ff88' : '#ff3344';
-
-  $('endgame-score').textContent = `FINAL SCORE: ${state.score} — GRADE: ${gradeEmoji[grade]} ${grade}`;
+  $('endgame-score').textContent = `SCORE: ${state.score} · GRADE: ${gradeEmoji[grade]}${grade} · DISPLACEMENT: ${state.metrics.displacement}% · DIVERSITY: ${state.metrics.diversity}%`;
 
   const acc = state.totalCorrect + state.totalWrong > 0
-    ? Math.round(state.totalCorrect / (state.totalCorrect + state.totalWrong) * 100)
-    : 0;
-
-  const bestStreak = state.correctStreak; // last streak (simplified)
+    ? Math.round(state.totalCorrect / (state.totalCorrect + state.totalWrong) * 100) : 0;
 
   $('endgame-summary').innerHTML = `
-    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:13px">
       <div style="text-align:center">
-        <div style="color:#8888aa;font-size:13px">BUILDINGS</div>
-        <div style="color:#00ff88;font-size:20px;font-family:'Press Start 2P'">${state.buildingsPlaced}</div>
+        <div style="color:#8888aa">BUILDINGS</div>
+        <div style="color:#00ff88;font-size:18px;font-family:'Press Start 2P'">${state.buildingsPlaced}</div>
       </div>
       <div style="text-align:center">
-        <div style="color:#8888aa;font-size:13px">JOBS</div>
-        <div style="color:#ffdd00;font-size:20px;font-family:'Press Start 2P'">${state.metrics.jobs}</div>
+        <div style="color:#8888aa">JOBS</div>
+        <div style="color:#ffdd00;font-size:18px;font-family:'Press Start 2P'">${state.metrics.jobs}</div>
       </div>
       <div style="text-align:center">
-        <div style="color:#8888aa;font-size:13px">ACCURACY</div>
-        <div style="color:#00aaff;font-size:20px;font-family:'Press Start 2P'">${acc}%</div>
+        <div style="color:#8888aa">DIVERSITY</div>
+        <div style="color:#cc44ff;font-size:18px;font-family:'Press Start 2P'">${state.metrics.diversity}%</div>
       </div>
       <div style="text-align:center">
-        <div style="color:#8888aa;font-size:13px">VITALITY</div>
-        <div style="color:#ff8800;font-size:20px;font-family:'Press Start 2P'">${state.metrics.vitality}%</div>
+        <div style="color:#8888aa">DISPLACEMENT</div>
+        <div style="color:${state.metrics.displacement>=60?'#ff3344':'#ff8800'};font-size:18px;font-family:'Press Start 2P'">${state.metrics.displacement}%</div>
+      </div>
+      <div style="text-align:center">
+        <div style="color:#8888aa">ACCURACY</div>
+        <div style="color:#00aaff;font-size:18px;font-family:'Press Start 2P'">${acc}%</div>
       </div>
     </div>
-    ${state.achievements.length ? `<div style="color:#ffdd00;margin-bottom:10px">🏅 Achievements: ${state.achievements.length}</div>` : ''}
-    ${win
-      ? `Outstanding! You mastered NMTCs, HTCs, and CDFIs to transform a distressed community!`
-      : `Opportunity City needs more help. Remember: NMTCs for new commercial projects, HTCs for historic rehab, CDFIs for housing + small biz!`
-    }<br><br>
-    <em style="color:#8888aa;font-size:14px">In the real world, these tools have revitalized thousands of communities across America.</em>
+    ${state.achievements.filter(a => a !== 'disp_event_fired').length ? `<div style="color:#ffdd00;margin-bottom:10px;font-size:14px">🏅 ${state.achievements.filter(a=>a!=='disp_event_fired').length} achievements unlocked</div>` : ''}
+    <div style="font-size:16px;line-height:1.7;max-width:460px">${oc.summary}</div>
   `;
 }
 
@@ -2048,11 +2262,12 @@ function startGame() {
   setTimeout(() => {
     showModal(
       '📚 HOW TO PLAY',
-      `<strong>Your mission:</strong> Revitalize Opportunity City using 3 powerful financing tools!<br><br>
-      <span class="nmtc-text">🏢 <strong>NMTCs</strong></span> — New Markets Tax Credits: For <em>new commercial/community projects</em> in low-income census tracts. Investors get a 39% federal tax credit over 7 years.<br><br>
-      <span class="htc-text">🏛️ <strong>HTCs</strong></span> — Historic Tax Credits: For <em>rehabilitating certified historic buildings</em>. 20% federal credit + state credits.<br><br>
-      <span class="cdfi-text">🏦 <strong>CDFIs</strong></span> — Community Development Financial Institutions: <em>Mission-driven lenders</em> for housing and small business where banks won\'t go.<br><br>
-      <strong style="color:#ffdd00">Each building needs the RIGHT tool!</strong> Match correctly to score big. Wrong choices cost points!`,
+      `<strong>Your mission:</strong> Build a <em>thriving, diverse community</em> — without displacing the people already there.<br><br>
+      <span class="nmtc-text">🏢 <strong>NMTCs</strong></span> — For <em>new commercial/community projects</em> in distressed tracts. Powerful, but can raise property values.<br>
+      <span class="htc-text">🏛️ <strong>HTCs</strong></span> — For <em>rehabilitating certified historic buildings</em>. Great for heritage, watch for gentrification.<br>
+      <span class="cdfi-text">🏦 <strong>CDFIs</strong></span> — For <em>affordable housing, small biz, and Community Land Trusts</em>. Your best anti-displacement tools.<br><br>
+      <strong style="color:#ff3344">⚠️ Watch the DISPLACEMENT meter!</strong> High-impact commercial projects raise it. Affordable housing, Land Trusts, and Charter Schools lower it.<br><br>
+      <strong style="color:#ffdd00">To win:</strong> Score high AND keep Displacement below 35% AND Diversity above 55%. That\'s the East Lake challenge — East Lake got the score. Did it get the rest?`,
       [{ text: '▶ LET\'S BUILD!', cls: 'primary' }]
     );
   }, 300);
