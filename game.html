@@ -1453,6 +1453,72 @@ const EVENTS = [
       { text: '🆘 Emergency: fund Community Land Trust', effect: { cdfi: +1, displacement: -25, diversity: +15, score: +80, budget: -0.5 }, result: 'Emergency CLT funding deployed. Land locked in permanent affordability. The displacement curve bends. Some families are saved. Some weren\'t.' },
       { text: '📊 Commission a study first', effect: { displacement: +15, diversity: -10, score: -60 }, result: 'The study takes six months. Fifty more families leave. The study confirms: yes, displacement happened. Thanks for the confirmation.' }
     ]
+  },
+  {
+    id: 'ev_nmtc_recapture',
+    title: '🚨 NMTC RECAPTURE TRIGGERED',
+    body: 'The IRS just flagged your NMTC deal. A tenant vacated, dropping the project below the required "substantially all" threshold for qualified low-income community investment. If the violation isn\'t cured within 6 months, investors must repay ALL 39% of credits claimed — plus interest. Your NMTC investor is on the phone right now.',
+    type: 'risk',
+    choices: [
+      { text: '⚖️ Fight it — hire tax counsel ($1M)', effect: { budget: -1, score: +80, nmtc: +1 }, result: 'Tax counsel argues the vacancy was temporary and involuntary. IRS agrees. Recapture avoided. The NMTC compliance rules are unforgiving — but your documentation was airtight.' },
+      { text: '💸 Cure it — replace tenant fast, pay penalties', effect: { budget: -1.5, score: -60, vitality: -10 }, result: 'You scrambled a replacement tenant and paid $500K in penalties. Crisis managed, but painful. Lesson: monitor NMTC compliance quarterly, not annually.' },
+      { text: '😬 Let recapture happen — pay the investor', effect: { budget: -3, score: -150, nmtc: -1 }, result: 'Recapture realized. Investors demand reimbursement for lost credits. $3M gone. One of the most expensive mistakes in community development finance.' }
+    ]
+  },
+  {
+    id: 'ev_esa_rec',
+    title: '☣️ PHASE I ESA: RECOGNIZED ENVIRONMENTAL CONDITIONS',
+    body: 'Your environmental consultant just submitted the Phase I Environmental Site Assessment. Result: three Recognized Environmental Conditions (RECs). The site was a dry cleaner in the 1960s and a gas station until 1988. Soil and groundwater contamination is likely. No lender will finance until this is resolved.',
+    type: 'risk',
+    choices: [
+      { text: '🏛️ Apply for EPA Brownfields Grant + Phase II', effect: { budget: +0.5, score: +60 }, result: 'Smart move. EPA Brownfields grants exist specifically for this. The Phase II confirms limited contamination — remediation costs $400K, fully covered. Six-month delay, but the site is clean and the community is protected.' },
+      { text: '🧹 Fund remediation yourself ($2M)', effect: { budget: -2, score: +100, vitality: +10 }, result: 'Expensive, but you controlled the timeline. Clean site, community trust, and you can now market it as "remediated brownfield" — which qualifies for additional NMTC points in the allocation competition.' },
+      { text: '🚶 Abandon site — find a different lot', effect: { score: -40 }, result: 'Sometimes walking away is right. The contaminated site sits vacant. You find a clean lot next round. Environmental due diligence isn\'t optional — it\'s cheaper to find out early.' }
+    ]
+  },
+  {
+    id: 'ev_philanthropic_windfall',
+    title: '🎁 PHILANTHROPIC WINDFALL',
+    body: 'A tech founder who grew up in this neighborhood just announced a $3M gift to Opportunity City. No strings attached — but three community groups are competing for it: the affordable housing coalition, the small business association, and the historic preservation society.',
+    type: 'bonus',
+    choices: [
+      { text: '🏘️ Affordable Housing Coalition', effect: { budget: +1.5, cdfi: +1, displacement: -15, diversity: +15 }, result: 'Three new affordable units enter the pipeline. The donor\'s mom gets one of them. Local newspaper headline: "Homeboy Returns." Displacement drops 15 points.' },
+      { text: '🛍️ Small Business Association', effect: { budget: +1.5, jobs: +25, income: +15, diversity: +10 }, result: '14 micro-loans funded. A laundromat, two food trucks, a barbershop. These owners now have equity in the neighborhood — the best anti-displacement insurance there is.' },
+      { text: '🏛️ Historic Preservation Society', effect: { budget: +1, htc: +1, history: +20, score: +80 }, result: 'Two more buildings nominated to the National Register, unlocking HTC eligibility. The past becomes an asset. Preservation is also economic development.' }
+    ]
+  },
+  {
+    id: 'ev_appraisal_gap',
+    title: '📉 APPRAISAL GAP CRISIS',
+    body: 'Your lender just called. The bank appraisal came in $1.8M below the project\'s total development cost. In distressed markets, this is common — comparable sales are depressed, so appraisals undervalue what you\'re trying to build. Without bridging the gap, the deal is dead.',
+    type: 'risk',
+    choices: [
+      { text: '🏦 Request CDFI subordinate debt to fill gap', effect: { cdfi: -1, budget: +0.5, score: +70 }, result: 'The CDFI steps in with a subordinate loan at below-market rates. Deal closes. This is exactly why CDFIs exist — they take the risk conventional lenders won\'t. Classic community development stack.' },
+      { text: '🏛️ Apply for HOME / CDBG gap financing', effect: { budget: +1, score: +50 }, result: 'HUD programs exist for exactly this. HOME and CDBG grant funds fill the appraisal gap without consuming your CDFI allocation. Slower — but free money.' },
+      { text: '✂️ Value-engineer the project (cut costs)', effect: { score: -30, vitality: -10, jobs: -10 }, result: 'You cut the community room, reduced unit sizes, and swapped materials. The project pencils — but it\'s half the community asset it was supposed to be. Sometimes value-engineering means de-valuing the mission.' }
+    ]
+  },
+  {
+    id: 'ev_construction_overrun',
+    title: '🏗️ CONSTRUCTION COST OVERRUN',
+    body: 'Your general contractor just issued a change order: $1.2M over budget. Supply chain disruptions, labor shortages, and a surprise structural issue in the foundation. This is the most common project killer in community development — and it hits hardest on the deals with the thinnest margins.',
+    type: 'risk',
+    choices: [
+      { text: '💪 Cover it — draw from contingency reserve', effect: { budget: -1.2, score: +60 }, result: 'You had a 15% contingency reserve — exactly for this. Project stays on track. Rule #1 of development finance: never underestimate contingency. Rule #2: see Rule #1.' },
+      { text: '🤝 Negotiate shared pain with contractor', effect: { budget: -0.6, score: +30 }, result: 'Contractor absorbs half, you absorb half. Neither side is happy, but the project continues. Good relationships with contractors are worth more than any single negotiation.' },
+      { text: '🏦 Request emergency draw from CDFI lender', effect: { cdfi: -1, budget: +0.3, score: -20 }, result: 'CDFI advances additional funds, but your loan covenant is now stretched. This is a common path — and exactly why CDFI lenders build flexible terms into their loan docs.' }
+    ]
+  },
+  {
+    id: 'ev_tax_credit_market',
+    title: '📊 TAX CREDIT MARKET VOLATILITY',
+    body: 'Congress is debating changes to the corporate tax rate. If it drops, NMTCs and HTCs become less valuable to investors — because a smaller tax liability means less need for credits. Credit pricing has already slipped from $0.92 to $0.78 on the dollar. Your pipeline is at risk.',
+    type: 'risk',
+    choices: [
+      { text: '🔒 Lock in pricing — close deal now at $0.78', effect: { budget: -0.5, score: +80, nmtc: -1 }, result: 'You closed quickly at reduced pricing. The deal pencils — barely. Three weeks later, credit prices drop to $0.71. You made the right call. Tax credit deals live and die on timing.' },
+      { text: '📣 Advocate — join industry coalition opposing rate change', effect: { score: +60, nmtc: +1 }, result: 'Your coalition\'s testimony shifts two Senate votes. The tax reform bill is amended to protect credit value. Community development finance survives. Advocacy is also a financing tool.' },
+      { text: '⏳ Wait it out — defer the deal', effect: { score: -50, budget: -0.5 }, result: 'Waiting cost you a construction season and $500K in carrying costs. Credit pricing recovered — but your community waited another year. In community development, delay is also a cost.' }
+    ]
   }
 ];
 
