@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Castle of the Winds — Browser Emulator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #003087; --gold: #C8A84B; --light: #f5f7fa;
+      --border: #d1d9e0; --text: #1a1a2e; --muted: #6b7280;
+      --success: #16a34a; --danger: #dc2626;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+    header { background: var(--blue); color: #fff; padding: 1.25rem 2rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+    header .icon { width: 52px; height: 52px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+    header h1 { font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+    header p  { font-size: .85rem; opacity: .8; margin-top: .15rem; }
+    header .back { margin-left: auto; color: rgba(255,255,255,.8); text-decoration: none; font-size: .85rem; border: 1px solid rgba(255,255,255,.35); border-radius: 6px; padding: .35rem .8rem; white-space: nowrap; }
+    header .back:hover { background: rgba(255,255,255,.1); }
+
+    main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
+    .card h2 { font-size: 1.05rem; font-weight: 700; color: var(--blue); border-bottom: 2px solid var(--gold); padding-bottom: .5rem; margin-bottom: 1.25rem; }
+
+    /* Setup panel */
+    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .setup-grid { grid-template-columns: 1fr; } }
+
+    .setup-step { border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .setup-step .step-num { display: inline-block; background: var(--blue); color: #fff; font-size: .75rem; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; margin-bottom: .5rem; }
+    .setup-step h3 { font-size: .9rem; font-weight: 700; margin-bottom: .4rem; }
+    .setup-step p { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+
+    /* Controls bar */
+    .controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1rem; border: none; border-radius: 6px; font-size: .85rem; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s; }
+    .btn:hover:not(:disabled) { opacity: .87; }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary   { background: var(--blue); color: #fff; }
+    .btn-gold      { background: var(--gold); color: #fff; }
+    .btn-success   { background: var(--success); color: #fff; }
+    .btn-danger    { background: var(--danger); color: #fff; }
+    .btn-outline   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+    #file-input { display: none; }
+
+    /* Status bar */
+    #status-bar { font-size: .8rem; color: var(--muted); padding: .4rem 0; display: flex; align-items: center; gap: .5rem; }
+    #status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; transition: background .3s; }
+    #status-dot.loading { background: var(--gold); animation: pulse 1s infinite; }
+    #status-dot.running { background: var(--success); }
+    #status-dot.error   { background: var(--danger); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+    /* Emulator canvas area */
+    #emulator-wrap {
+      position: relative; background: #000; border-radius: 8px; overflow: hidden;
+      border: 2px solid var(--border); min-height: 400px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #emulator-wrap canvas { display: block; max-width: 100%; }
+    #placeholder {
+      text-align: center; color: #6b7280; padding: 3rem 2rem;
+    }
+    #placeholder .big-icon { font-size: 3rem; margin-bottom: 1rem; }
+    #placeholder p { font-size: .9rem; line-height: 1.6; }
+
+    /* Save/load bar */
+    .save-bar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+    .save-indicator { font-size: .8rem; color: var(--muted); margin-left: auto; }
+
+    /* Tips */
+    .tips-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    @media (max-width: 520px) { .tips-list { grid-template-columns: 1fr; } }
+    .tips-list li { font-size: .82rem; color: var(--muted); padding: .5rem .75rem; background: var(--light); border-radius: 6px; line-height: 1.45; }
+    .tips-list li strong { color: var(--text); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px); background: #1f2937; color: #fff; font-size: .85rem; padding: .6rem 1.25rem; border-radius: 99px; box-shadow: 0 4px 16px rgba(0,0,0,.25); transition: transform .25s; z-index: 999; white-space: nowrap; }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="icon">&#x1F3F0;</div>
+  <div>
+    <h1>Castle of the Winds</h1>
+    <p>Play in your browser via x86 PC emulation — no installation required</p>
+  </div>
+  <a class="back" href="index.html">&#8592; Back</a>
+</header>
+
+<main>
+
+  <!-- Setup instructions -->
+  <div class="card">
+    <h2>Getting Started</h2>
+    <div class="setup-grid">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <h3>Get the disk image</h3>
+        <p>You need a Windows 3.1 hard disk image (.img) with Castle of the Winds installed. Download one from <strong>archive.org</strong> or create one from your own files using a tool like <a href="https://www.winehq.org/" target="_blank" rel="noopener">Wine</a> or <a href="https://www.virtualbox.org/" target="_blank" rel="noopener">VirtualBox</a>.</p>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <h3>Load the image</h3>
+        <p>Click <strong>"Load Disk Image"</strong> and select your <code>.img</code> file. The emulator will start automatically. All processing happens locally in your browser — your file is never uploaded anywhere.</p>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <h3>Launch the game</h3>
+        <p>Once Windows 3.1 boots, navigate the Program Manager and double-click the Castle of the Winds icon (or find <code>CW1.EXE</code> in File Manager) to start playing.</p>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <h3>Save your progress</h3>
+        <p>Use the <strong>Save State</strong> button below to preserve your exact position, inventory, and dungeon state. Saved states persist in this browser until you clear site data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emulator controls -->
+  <div class="card">
+    <h2>Emulator</h2>
+
+    <div class="controls" style="margin-bottom:.75rem;">
+      <button class="btn btn-primary" id="btn-load" onclick="triggerFileLoad()">&#128190; Load Disk Image</button>
+      <button class="btn btn-outline" id="btn-fullscreen" onclick="toggleFullscreen()" disabled>&#x26F6; Fullscreen</button>
+      <button class="btn btn-danger" id="btn-reset" onclick="resetEmulator()" disabled>&#x21BA; Reset PC</button>
+      <div id="status-bar"><span id="status-dot"></span><span id="status-text">No disk image loaded</span></div>
+    </div>
+
+    <input type="file" id="file-input" accept=".img,.bin,.hdd,.iso" onchange="loadDiskImage(event)" />
+
+    <div id="emulator-wrap">
+      <div id="placeholder">
+        <div class="big-icon">&#x1F3F0;</div>
+        <p>Load a Windows 3.1 disk image to begin.<br>Your save states are stored locally in this browser.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save / Load -->
+  <div class="card">
+    <h2>Save &amp; Load Game State</h2>
+    <div class="save-bar">
+      <button class="btn btn-success" id="btn-save" onclick="saveState()" disabled>&#128190; Save State</button>
+      <button class="btn btn-gold" id="btn-load-state" onclick="loadState()" disabled>&#9654; Load State</button>
+      <button class="btn btn-outline" id="btn-download" onclick="downloadState()" disabled>&#11015; Download Save File</button>
+      <button class="btn btn-outline" id="btn-upload" onclick="document.getElementById('save-upload').click()" disabled>&#11014; Upload Save File</button>
+      <input type="file" id="save-upload" accept=".bin,.v86state" style="display:none" onchange="uploadState(event)" />
+      <span class="save-indicator" id="save-indicator"></span>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:.75rem;">
+      Save states capture the <em>entire</em> machine state (CPU, RAM, disk) — not just in-game saves. This means you can resume exactly where you left off, mid-dungeon. Download saves to back them up or play on another device.
+    </p>
+  </div>
+
+  <!-- Tips -->
+  <div class="card">
+    <h2>Tips &amp; Keyboard Shortcuts</h2>
+    <ul class="tips-list">
+      <li><strong>Click the emulator</strong> first to capture keyboard/mouse input. Press <strong>Escape</strong> to release.</li>
+      <li><strong>Ctrl+C / Ctrl+V</strong> — Use the "Fullscreen" button for a better playing experience.</li>
+      <li><strong>Castle of the Winds 1</strong> is freeware. The sequel <em>Lifthransir's Bane</em> is also freeware.</li>
+      <li><strong>Saving in-game</strong> writes to the disk image in RAM. Use <em>Save State</em> to persist it across sessions.</li>
+      <li><strong>Windows 3.1 tip:</strong> Alt+F4 closes windows. Double-click title bar to maximize.</li>
+      <li><strong>Performance:</strong> The emulator runs in a single browser tab. Close other tabs for best speed.</li>
+    </ul>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<!-- v86 emulator (loaded from jsDelivr CDN) -->
+<script>
+// ── Constants ───────────────────────────────────────────────────────────────
+const DB_NAME    = 'cotw_emulator';
+const DB_VERSION = 1;
+const STORE_NAME = 'saves';
+const SAVE_KEY   = 'state_v1';
+
+// ── State ────────────────────────────────────────────────────────────────────
+let emulator = null;
+let db       = null;
+let v86Loaded = false;
+
+// ── IndexedDB ────────────────────────────────────────────────────────────────
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME);
+    req.onsuccess  = e => resolve(e.target.result);
+    req.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function dbPut(key, value) {
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  tx.objectStore(STORE_NAME).put(value, key);
+  return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+}
+
+async function dbGet(key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).get(key);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Status helpers ───────────────────────────────────────────────────────────
+function setStatus(state, text) {
+  const dot  = document.getElementById('status-dot');
+  const span = document.getElementById('status-text');
+  dot.className  = state; // 'loading' | 'running' | 'error' | ''
+  span.textContent = text;
+}
+
+function setEmulatorButtons(running) {
+  document.getElementById('btn-fullscreen').disabled = !running;
+  document.getElementById('btn-reset').disabled      = !running;
+  document.getElementById('btn-save').disabled       = !running;
+  document.getElementById('btn-load-state').disabled = !running;
+  document.getElementById('btn-download').disabled   = !running;
+  document.getElementById('btn-upload').disabled     = !running;
+}
+
+// ── Load v86 dynamically ──────────────────────────────────────────────────────
+function loadV86Script() {
+  return new Promise((resolve, reject) => {
+    if (v86Loaded) { resolve(); return; }
+    const script = document.createElement('script');
+    // v86 published on npm; served via jsDelivr
+    script.src = 'https://cdn.jsdelivr.net/npm/v86/build/libv86.js';
+    script.onload  = () => { v86Loaded = true; resolve(); };
+    script.onerror = () => reject(new Error('Failed to load v86 library. Check your internet connection.'));
+    document.head.appendChild(script);
+  });
+}
+
+// ── File picker trigger ───────────────────────────────────────────────────────
+function triggerFileLoad() {
+  document.getElementById('file-input').click();
+}
+
+// ── Start emulator from an ArrayBuffer ───────────────────────────────────────
+async function startEmulator(hddBuffer) {
+  // Tear down existing emulator if any
+  if (emulator) {
+    emulator.stop();
+    emulator = null;
+  }
+
+  const wrap = document.getElementById('emulator-wrap');
+  // Clear placeholder, create canvas
+  wrap.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  canvas.style.width  = '100%';
+  canvas.style.cursor = 'default';
+  wrap.appendChild(canvas);
+
+  setStatus('loading', 'Loading v86 library…');
+  await loadV86Script();
+  setStatus('loading', 'Starting emulator…');
+
+  emulator = new V86({
+    wasm_path:      'https://cdn.jsdelivr.net/npm/v86/build/v86.wasm',
+    memory_size:    32 * 1024 * 1024,
+    vga_memory_size: 8 * 1024 * 1024,
+    screen_container: wrap,
+    bios:           { url: 'https://cdn.jsdelivr.net/npm/v86/bios/seabios.bin' },
+    vga_bios:       { url: 'https://cdn.jsdelivr.net/npm/v86/bios/vgabios.bin' },
+    hda:            { buffer: hddBuffer },
+    boot_order:     0x132,   // HDD first
+    autostart:      true,
+  });
+
+  emulator.add_listener('emulator-ready', () => {
+    setStatus('running', 'Emulator running — click inside to capture input');
+    setEmulatorButtons(true);
+    checkForExistingSave();
+  });
+
+  emulator.add_listener('emulator-stopped', () => {
+    setStatus('error', 'Emulator stopped');
+  });
+}
+
+// ── Load disk image from file picker ─────────────────────────────────────────
+function loadDiskImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  setStatus('loading', `Reading "${file.name}"…`);
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      await startEmulator(e.target.result);
+    } catch (err) {
+      setStatus('error', 'Error: ' + err.message);
+      showToast('Failed to start emulator: ' + err.message, 5000);
+    }
+  };
+  reader.onerror = () => setStatus('error', 'Could not read file');
+  reader.readAsArrayBuffer(file);
+
+  // Reset input so same file can be reloaded
+  event.target.value = '';
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function resetEmulator() {
+  if (!emulator) return;
+  if (!confirm('Reset the emulator? Unsaved in-game progress will be lost.')) return;
+  emulator.restart();
+  showToast('Emulator reset');
+}
+
+// ── Fullscreen ────────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  const wrap = document.getElementById('emulator-wrap');
+  if (!document.fullscreenElement) {
+    wrap.requestFullscreen().catch(err => showToast('Fullscreen error: ' + err.message));
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// ── Save state ────────────────────────────────────────────────────────────────
+async function saveState() {
+  if (!emulator) return;
+  try {
+    setStatus('loading', 'Saving state…');
+    const state = await emulator.save_state();
+    await dbPut(SAVE_KEY, state);
+    const ts = new Date().toLocaleString();
+    document.getElementById('save-indicator').textContent = 'Last saved: ' + ts;
+    setStatus('running', 'Running');
+    showToast('Game state saved!');
+  } catch (err) {
+    setStatus('running', 'Running');
+    showToast('Save failed: ' + err.message, 4000);
+  }
+}
+
+// ── Load state ────────────────────────────────────────────────────────────────
+async function loadState() {
+  if (!emulator) return;
+  try {
+    const state = await dbGet(SAVE_KEY);
+    if (!state) { showToast('No saved state found. Save first!', 3500); return; }
+    setStatus('loading', 'Restoring state…');
+    await emulator.restore_state(state);
+    setStatus('running', 'Running — state restored');
+    showToast('Game state loaded!');
+  } catch (err) {
+    setStatus('running', 'Running');
+    showToast('Load failed: ' + err.message, 4000);
+  }
+}
+
+// ── Check for existing save and show indicator ────────────────────────────────
+async function checkForExistingSave() {
+  try {
+    const state = await dbGet(SAVE_KEY);
+    if (state) {
+      document.getElementById('save-indicator').textContent = 'A saved state is available — click Load State to restore it';
+    }
+  } catch (_) {}
+}
+
+// ── Download save file ────────────────────────────────────────────────────────
+async function downloadState() {
+  if (!emulator) return;
+  try {
+    const state = await emulator.save_state();
+    const blob = new Blob([state], { type: 'application/octet-stream' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'cotw_save.v86state';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Save file downloaded');
+  } catch (err) {
+    showToast('Download failed: ' + err.message, 4000);
+  }
+}
+
+// ── Upload save file ──────────────────────────────────────────────────────────
+function uploadState(event) {
+  const file = event.target.files[0];
+  if (!file || !emulator) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      setStatus('loading', 'Restoring uploaded state…');
+      await emulator.restore_state(e.target.result);
+      await dbPut(SAVE_KEY, e.target.result); // also persist locally
+      document.getElementById('save-indicator').textContent = 'Restored from uploaded file';
+      setStatus('running', 'Running — state restored');
+      showToast('Save file loaded!');
+    } catch (err) {
+      setStatus('running', 'Running');
+      showToast('Upload failed: ' + err.message, 4000);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    db = await openDB();
+  } catch (err) {
+    console.warn('IndexedDB unavailable:', err);
+  }
+})();
+</script>
+</body>
+</html>
