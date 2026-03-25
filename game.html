@@ -127,6 +127,45 @@
     white-space: nowrap;
   }
 
+  #end-turn-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    background: rgba(255,221,0,0.08);
+    border: 1px solid rgba(255,221,0,0.35);
+    border-radius: 6px;
+    color: var(--accent-yellow);
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-shadow: 0 0 6px rgba(255,221,0,0.4);
+  }
+  #end-turn-btn:hover {
+    background: rgba(255,221,0,0.14);
+    box-shadow: 0 0 12px rgba(255,221,0,0.25);
+  }
+  #end-turn-btn.urgent {
+    animation: pulse-yellow 1.2s ease-in-out infinite alternate;
+    border-color: var(--accent-yellow);
+    background: rgba(255,221,0,0.15);
+  }
+  @keyframes pulse-yellow {
+    from { box-shadow: 0 0 4px rgba(255,221,0,0.2); }
+    to   { box-shadow: 0 0 18px rgba(255,221,0,0.6); }
+  }
+
+  #budget-warning {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: rgba(255,51,68,0.07);
+    border: 1px solid rgba(255,51,68,0.3);
+    border-radius: 5px;
+    font-size: 13px;
+    color: #cc8890;
+    line-height: 1.4;
+    text-align: center;
+  }
+
   /* ===== MAIN LAYOUT ===== */
   #main {
     display: flex;
@@ -1068,7 +1107,8 @@
     </div>
   </div>
   <div id="streak-badge"></div>
-  <div id="round-info">ROUND <span id="round-num">1</span> / 8</div>
+  <div id="round-info">ROUND <span id="round-num">1</span> / 14</div>
+  <button id="end-turn-btn" onclick="endTurnClick()">END TURN →</button>
 </header>
 
 <!-- MAIN -->
@@ -1079,6 +1119,7 @@
     <div class="panel-section">
       <div class="panel-title">▶ BUILD MENU</div>
       <div id="build-buttons"></div>
+      <div id="budget-warning" style="display:none"></div>
     </div>
     <div class="panel-section">
       <div class="panel-title">▶ COMMUNITY HEALTH</div>
@@ -1623,7 +1664,7 @@ const EVENTS = [
 // =====================================================
 
 const GRID_SIZE = 4; // 4x4 = 16 lots
-const TOTAL_ROUNDS = 8;
+const TOTAL_ROUNDS = 14;
 
 let state = {
   budget: 10,        // in $M
@@ -1887,10 +1928,16 @@ function renderBuildMenu() {
   const container = $('build-buttons');
   container.innerHTML = '';
 
+  const emptyCells = state.grid.some(c => !c.built);
+  let anyAffordable = false;
+  let anyToolAvail = false;
+
   Object.entries(BUILDING_TYPES).forEach(([key, bt]) => {
     const canAfford = state.budget >= bt.cost;
     const toolAvail = state.tools[bt.tool] > 0;
     const available = canAfford && toolAvail;
+    if (toolAvail) anyToolAvail = true;
+    if (available) anyAffordable = true;
 
     const btn = document.createElement('div');
     btn.className = 'build-btn tool-' + bt.tool + (state.selectedBuildType === key ? ' active' : '') + (!available ? ' disabled' : '');
@@ -1914,6 +1961,23 @@ function renderBuildMenu() {
 
     container.appendChild(btn);
   });
+
+  // Show budget warning and highlight End Turn when stuck
+  const warning = $('budget-warning');
+  const endBtn = $('end-turn-btn');
+  if (emptyCells && anyToolAvail && !anyAffordable) {
+    warning.style.display = 'block';
+    warning.innerHTML = `💸 Budget too low to build.<br>Click <strong>END TURN →</strong> to seek new funding.`;
+    if (endBtn) endBtn.classList.add('urgent');
+  } else {
+    warning.style.display = 'none';
+    if (endBtn) endBtn.classList.remove('urgent');
+  }
+}
+
+function endTurnClick() {
+  checkAchievements();
+  advanceRound();
 }
 
 function renderMetrics() {
@@ -2176,7 +2240,7 @@ function attemptBuild(cellIndex, typeKey, bt, chosenTool, isCorrect) {
       • Community vitality: +${bt.vitality}<br>
       • Score: +${totalScore} points${bonusLine}<br><br>
       <strong style="color:#ffdd00">Fun fact:</strong> ${tool.funFact}`,
-      [{ text: '▶ Continue', cls: 'primary', cb: () => { checkAchievements(); advanceRound(); } }]
+      [{ text: '▶ Keep Building', cls: 'primary', cb: () => { checkAchievements(); renderAll(); } }]
     );
 
     state.selectedBuildType = null;
