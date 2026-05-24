@@ -98,11 +98,16 @@ It should take about 1–2 minutes to read.
 6. No boosterism. Don't cheerfully reframe things that are bad.
 7. Goal: happy, light, ready for the day.
 
+## Length Budget (hard limit)
+- The entire briefing must fit in a single SMS thread: keep it UNDER 1,500 characters total,
+  including emoji and section headers. This is a hard ceiling — never exceed it.
+- If you're running long, cut the optional sections first and shorten sentences. Brevity wins.
+
 ## Format
 - Use short emoji section headers to make it scannable.
   Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS · 👶 FATHERHOOD
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
-- Keep each section tight: 1–4 sentences max.
+- Keep each section tight: 1–2 sentences max.
 - Not every section appears every day — rotate the optional ones.
 - Lead with the most time-sensitive items (rates, scores, weather, breaking policy news).
 
@@ -237,6 +242,17 @@ def send_sms(message: str) -> None:
         os.environ["TWILIO_ACCOUNT_SID"],
         os.environ["TWILIO_AUTH_TOKEN"],
     )
+
+    # Twilio rejects bodies over 1,600 characters. Trim on a section/line
+    # boundary so a too-long briefing degrades gracefully instead of failing.
+    SMS_LIMIT = 1600
+    if len(message) > SMS_LIMIT:
+        truncated = message[: SMS_LIMIT - 1]
+        cut = truncated.rfind("\n")
+        if cut > SMS_LIMIT // 2:
+            truncated = truncated[:cut]
+        message = truncated.rstrip() + "…"
+        print(f"  Briefing trimmed to {len(message)} chars to fit SMS limit.")
 
     result = twilio_client.messages.create(
         body=message,
