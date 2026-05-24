@@ -2,11 +2,12 @@
 """
 Morning Briefing for Jonny
 ===========================
-Generates a personalized daily SMS briefing using Claude (with live web search)
+Generates a personalized daily SMS briefing using Groq (with Tavily web search)
 and sends it via Twilio.
 
 Required environment variables — set these as GitHub Actions secrets:
-  ANTHROPIC_API_KEY    Your Anthropic API key
+  GROQ_API_KEY         Your Groq API key
+  TAVILY_API_KEY       Your Tavily API key
   TWILIO_ACCOUNT_SID   Your Twilio account SID
   TWILIO_AUTH_TOKEN    Your Twilio auth token
   TWILIO_FROM_NUMBER   Twilio phone number to send from (e.g. +15551234567)
@@ -18,7 +19,9 @@ import sys
 from datetime import datetime
 
 import pytz
-import anthropic
+import requests
+import json
+from groq import Groq
 from twilio.rest import Client as TwilioClient
 
 
@@ -135,8 +138,7 @@ tight and readable, designed to be scanned over coffee.
 # ── Core functions ────────────────────────────────────────────────────────────
 
 def generate_briefing() -> str:
-    """Call Claude with live web search to generate today's briefing."""
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    """Call Groq with Tavily web search to generate today's briefing."""
 
     # Get today's date in Atlanta's timezone
     atlanta_tz = pytz.timezone("America/New_York")
@@ -146,66 +148,79 @@ def generate_briefing() -> str:
 
     user_prompt = USER_PROMPT_TEMPLATE.format(date=date_str, weekday=weekday_str)
 
-    # Server-side web search and fetch tools — Claude handles the search loop
-    # automatically on Anthropic's infrastructure. No client-side execution needed.
-    tools = [
-        {"type": "web_search_20260209", "name": "web_search"},
-        {"type": "web_fetch_20260209",  "name": "web_fetch"},
+    # Step 1: Fetch web search results via Tavily API
+    print("  Fetching web search results...")
+    search_queries = [
+        "SOFR rate Treasury yields 2Y 10Y 30Y today",
+        "Fed FOMC announcement rate decision today",
+        "CDFI Fund allocation Federal Register NMTC",
+        "Atlanta weather forecast today",
+        "Braves Blue Jays Maple Leafs Canadiens Atlanta United scores",
+        "US politics national news today",
+        "Canadian politics federal Ontario Quebec today",
+        "Atlanta Georgia local news politics today",
     ]
 
-    messages = [{"role": "user", "content": user_prompt}]
+    search_results = []
+    tavily_api_key = os.environ.get("TAVILY_API_KEY")
+    if not tavily_api_key:
+        raise RuntimeError("TAVILY_API_KEY not set")
 
-    # Claude's server-side tool loop can hit a 10-iteration limit and return
-    # stop_reason="pause_turn". When that happens, re-send the conversation to
-    # let it continue. We cap this at 5 rounds to stay sane.
-    max_continuations = 5
-    final_response = None
+    for query in search_queries:
+        try:
+            response = requests.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": tavily_api_key,
+                    "query": query,
+                    "max_results": 5,
+                    "include_answer": True,
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if data.get("results"):
+                search_results.append({
+                    "query": query,
+                    "results": data["results"][:3],  # Top 3 results per query
+                })
+        except Exception as e:
+            print(f"  Warning: search failed for '{query}': {e}")
 
-    for attempt in range(max_continuations):
-        print(f"  API call {attempt + 1}/{max_continuations}...")
+    # Step 2: Format search results as context
+    context = "=== WEB SEARCH RESULTS ===\n"
+    for item in search_results:
+        context += f"\nQuery: {item['query']}\n"
+        for i, result in enumerate(item["results"], 1):
+            context += f"  {i}. {result.get('title', 'N/A')}\n"
+            context += f"     {result.get('content', 'N/A')}\n"
 
-        with client.messages.stream(
-            model="claude-opus-4-6",
-            max_tokens=3000,
-            system=SYSTEM_PROMPT,
-            tools=tools,
-            messages=messages,
-        ) as stream:
-            response = stream.get_final_message()
+    # Step 3: Build enriched prompt
+    enriched_prompt = f"{user_prompt}\n\n{context}"
 
-        print(f"  stop_reason={response.stop_reason}")
+    # Step 4: Call Groq API
+    print("  Calling Groq API...")
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        raise RuntimeError("GROQ_API_KEY not set")
 
-        if response.stop_reason in ("end_turn", "stop_sequence"):
-            final_response = response
-            break
+    client = Groq(api_key=groq_api_key)
 
-        elif response.stop_reason == "pause_turn":
-            # Server-side tool loop hit its iteration cap. Re-send the full
-            # conversation so Claude can pick up where it left off.
-            messages = [
-                {"role": "user",      "content": user_prompt},
-                {"role": "assistant", "content": response.content},
-            ]
-            final_response = response  # keep as fallback if loop ends here
+    response = client.chat.completions.create(
+        model="mixtral-8x7b-32768",
+        max_tokens=2000,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": enriched_prompt},
+        ],
+    )
 
-        else:
-            # Unexpected stop reason — take what we have
-            final_response = response
-            break
-
-    if final_response is None:
-        raise RuntimeError("No response received from Claude")
-
-    # Pull out all text blocks from the response
-    text_parts = [
-        block.text
-        for block in final_response.content
-        if hasattr(block, "text") and block.text
-    ]
-    briefing = "\n\n".join(text_parts).strip()
+    # Step 5: Extract and return briefing
+    briefing = response.choices[0].message.content.strip()
 
     if not briefing:
-        raise RuntimeError("Claude returned an empty briefing")
+        raise RuntimeError("Groq returned an empty briefing")
 
     return briefing
 

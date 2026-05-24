@@ -6,6 +6,7 @@ click==8.1.7
 Pillow==10.4.0
 
 # Morning Briefing dependencies
-anthropic>=0.50.0
-twilio>=9.0.0
-pytz>=2024.1
+groq==0.4.2
+requests==2.31.0
+twilio==8.10.0
+pytz==2024.1
