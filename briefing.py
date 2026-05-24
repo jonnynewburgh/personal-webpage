@@ -208,7 +208,7 @@ def generate_briefing() -> str:
     client = Groq(api_key=groq_api_key)
 
     response = client.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="llama-3.3-70b-versatile",
         max_tokens=2000,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
