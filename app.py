@@ -12,7 +12,7 @@ from pathlib import Path
 
 from flask import (
     Flask, render_template, redirect, url_for,
-    send_from_directory, flash, abort,
+    send_from_directory, flash, abort, request,
 )
 
 from borrower_metrics.generate import generate_reports
@@ -75,6 +75,8 @@ def _report_pairs():
 
 @app.get("/")
 def index():
+    if request.host.startswith("consent."):
+        return consent()
     return render_template(
         "index.html",
         samples=_sample_meta(),
