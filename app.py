@@ -95,6 +95,25 @@ def generate(sample_key):
     return redirect(url_for("index"))
 
 
+@app.get("/consent")
+def consent():
+    return """<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JHN Advising Consent</title>
+</head>
+<body>
+  <h1>SMS Consent</h1>
+  <p>By submitting this form, you agree that JHN Advising may send SMS messages to the number you provide about appointments, reminders, and account updates.</p>
+  <p>Message and data rates may apply. Message frequency may vary.</p>
+  <p>Reply STOP to opt out. Reply HELP for help.</p>
+  <p>Contact: info@jhnadvising.com</p>
+</body>
+</html>"""
+
+
 @app.get("/download/<filename>")
 def download(filename):
     # Prevent path traversal
