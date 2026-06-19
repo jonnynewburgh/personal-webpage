@@ -8,5 +8,4 @@ Pillow==10.4.0
 # Morning Briefing dependencies
 groq==1.2.0
 requests>=2.31.0
-twilio==8.10.0
 pytz==2024.1

@@ -2,27 +2,27 @@
 """
 Morning Briefing for Jonny
 ===========================
-Generates a personalized daily SMS briefing using Groq (with Tavily web search)
-and sends it via Twilio.
+Generates a personalized daily briefing using Groq (with Tavily web search)
+and sends it via email over Gmail SMTP.
 
 Required environment variables — set these as GitHub Actions secrets:
   GROQ_API_KEY         Your Groq API key
   TAVILY_API_KEY       Your Tavily API key
-  TWILIO_ACCOUNT_SID   Your Twilio account SID
-  TWILIO_AUTH_TOKEN    Your Twilio auth token
-  TWILIO_FROM_NUMBER   Twilio phone number to send from (e.g. +15551234567)
-  TWILIO_TO_NUMBER     Jonny's phone number (e.g. +14041234567)
+  GMAIL_ADDRESS        Gmail account to send from / authenticate as
+  GMAIL_APP_PASSWORD   Gmail App Password (not your account password)
+  RECIPIENT            Where to deliver (optional; defaults to GMAIL_ADDRESS)
 """
 
 import os
 import sys
+import smtplib
 from datetime import datetime
+from email.message import EmailMessage
 
 import pytz
 import requests
 import json
 from groq import Groq
-from twilio.rest import Client as TwilioClient
 
 
 # ── Jonny's profile + briefing instructions ───────────────────────────────────
@@ -230,37 +230,39 @@ def generate_briefing() -> str:
     return briefing
 
 
-def send_sms(message: str) -> None:
-    """Send the briefing to Jonny via Twilio SMS.
+def send_email(message: str) -> None:
+    """Send the briefing to Jonny via Gmail SMTP.
 
-    Twilio automatically splits messages longer than 160 characters into
-    concatenated segments (up to 1,600 characters total recommended). For a
-    1–2 minute read (~300–400 words), expect 5–10 SMS segments delivered
-    as one threaded message on most modern phones.
+    Uses Python's stdlib smtplib + email — no third-party dependencies.
+    Connects over implicit TLS (SMTP_SSL) on port 465, so the exchange is
+    encrypted from the first byte with no STARTTLS upgrade step. Email has
+    no practical body-length limit, so the full briefing is sent as-is.
+
+    Fails closed: a missing or blank required variable raises before any
+    network call, and any SMTP error propagates to the caller.
     """
-    twilio_client = TwilioClient(
-        os.environ["TWILIO_ACCOUNT_SID"],
-        os.environ["TWILIO_AUTH_TOKEN"],
-    )
+    gmail_address = os.environ.get("GMAIL_ADDRESS", "").strip()
+    app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+    if not gmail_address:
+        raise RuntimeError("GMAIL_ADDRESS is not set")
+    if not app_password:
+        raise RuntimeError("GMAIL_APP_PASSWORD is not set")
+    recipient = os.environ.get("RECIPIENT", "").strip() or gmail_address
 
-    # Twilio rejects bodies over 1,600 characters. Trim on a section/line
-    # boundary so a too-long briefing degrades gracefully instead of failing.
-    SMS_LIMIT = 1600
-    if len(message) > SMS_LIMIT:
-        truncated = message[: SMS_LIMIT - 1]
-        cut = truncated.rfind("\n")
-        if cut > SMS_LIMIT // 2:
-            truncated = truncated[:cut]
-        message = truncated.rstrip() + "…"
-        print(f"  Briefing trimmed to {len(message)} chars to fit SMS limit.")
+    atlanta_tz = pytz.timezone("America/New_York")
+    date_str = datetime.now(atlanta_tz).strftime("%A, %B %-d, %Y")
 
-    result = twilio_client.messages.create(
-        body=message,
-        from_=os.environ["TWILIO_FROM_NUMBER"],
-        to=os.environ["TWILIO_TO_NUMBER"],
-    )
+    email = EmailMessage()
+    email["Subject"] = f"Morning Briefing — {date_str}"
+    email["From"] = gmail_address
+    email["To"] = recipient
+    email.set_content(message)
 
-    print(f"SMS sent. Twilio SID: {result.sid}, status: {result.status}")
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(gmail_address, app_password)
+        server.send_message(email)
+
+    print(f"Email sent to {recipient}.")
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -301,9 +303,9 @@ def main():
     print("─" * 60 + "\n")
 
     try:
-        send_sms(briefing)
+        send_email(briefing)
     except Exception as exc:
-        print(f"ERROR sending SMS: {exc}", file=sys.stderr)
+        print(f"ERROR sending email: {exc}", file=sys.stderr)
         sys.exit(1)
 
     print("Done.")
