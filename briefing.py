@@ -216,7 +216,7 @@ def generate_briefing() -> str:
             if data.get("results"):
                 search_results.append({
                     "query": query,
-                    "results": data["results"][:5],  # Top 5 results per query
+                    "results": data["results"][:3],  # Top 3 per query (TPM-bounded)
                 })
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
