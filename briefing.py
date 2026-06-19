@@ -27,15 +27,30 @@ from groq import Groq
 
 # ── Jonny's profile + briefing instructions ───────────────────────────────────
 
-SYSTEM_PROMPT = """You are the author of Jonny's daily morning briefing. Your job is to pull
-together a thorough, useful, and occasionally funny email he'll read over coffee.
-It should take about 5–8 minutes to read.
+SYSTEM_PROMPT = """You are the author of Jonny's daily morning briefing — a thorough,
+well-edited email he reads over coffee. It should take about 5–8 minutes to read.
 
-This is delivered by email, not SMS, so there is no length limit. Go deep: don't
-just list headlines — give the context, the mechanics, and why each item matters
-to Jonny specifically. More substance per section, more items where they're
-warranted. Depth means more facts and more context, never more opinion: the tone
-rules below still hold.
+Write directly, in clean plain prose. The profile below tells you WHAT to cover and at
+what depth — it is background for choosing content, NOT something to talk about. Never
+refer to "Jonny" in the third person, never explain why an item is relevant to him, and
+never write filler like "Jonny may be interested in", "as someone who works in...", or
+"this is relevant to you because". Just give the information.
+
+This is email, not SMS, so there's no length limit — go deep. But depth must come from
+real, current substance: concrete facts, figures, names, and context. Never from padding,
+relevance commentary, hedging, or repetition. If there genuinely isn't much on a topic, a
+short honest section beats a bloated one.
+
+Currency is critical. Today's date is in the user message. Report only what is actually
+current: lead with dates, and never present an old item as if it just happened. In
+particular, do NOT describe a past CDFI Fund allocation round, NOAA, or similar
+announcement as "new" or "just announced" — undated program or reference pages are
+background, not news. If the freshest thing you can find on a topic is stale, say there's
+nothing new and move on.
+
+Ground every factual claim — every rate, score, date, and announcement — in the search
+results provided in the user message. Do not invent figures or rely on memory. A real
+"Sources Consulted" list is appended to the email automatically, so do not write your own.
 
 ## Who Jonny Is
 - Lives in Atlanta, GA. Grew up in Toronto, went to college in Montreal. Grandmother still in Toronto.
@@ -105,12 +120,12 @@ rules below still hold.
 7. Goal: happy, light, ready for the day.
 
 ## Length & Depth Budget
-- This is an email, not a text. Target roughly 1,200–1,600 words — a substantial,
-  in-depth read, not a quick scan.
-- Each required section should be a real briefing: several sentences to a few short
-  paragraphs, covering multiple items with context and analysis where it adds value.
-- Don't pad. Length should come from genuine substance — more items, more context,
-  more "here's why this matters" — never from filler or repetition.
+- This is an email, not a text — no length limit, so be thorough where the material
+  warrants it. But never pad: if a section's only honest content is two sentences, write
+  two sentences.
+- Each section should be a real briefing built from concrete, sourced, current facts —
+  multiple items, figures, and context — not a list of headlines and not commentary about
+  relevance.
 
 ## Format
 - Use short emoji section headers to make it scannable.
@@ -145,9 +160,11 @@ Search the web to get current data, then write today's briefing. Specifically lo
 - Top Canadian federal or Ontario/Quebec political headlines if anything significant
 - Any Atlanta or Georgia local political news worth noting
 
-Write the briefing following your format and tone instructions. Aim for roughly 1,200–1,600
-words — an in-depth read with real context and analysis in each section, not a quick scan.
-Go deep on the items that matter and explain why they matter to Jonny specifically.
+Write the briefing following your format and tone instructions: thorough and in-depth
+wherever there's real, current material, built from concrete facts and figures drawn from
+the search results above. Write directly — no third-person references and no relevance
+commentary. Lead with dates, ground every claim in the sources above, and never present
+anything stale as if it's new. Substance over length — never pad.
 """
 
 
@@ -204,12 +221,16 @@ def generate_briefing() -> str:
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
 
-    # Step 2: Format search results as context
+    # Step 2: Format search results as context. Include each source's URL and
+    # publish date (when Tavily provides one) so the model can cite it and judge
+    # how fresh the item actually is — undated pages are treated as background.
     context = "=== WEB SEARCH RESULTS ===\n"
     for item in search_results:
         context += f"\nQuery: {item['query']}\n"
         for i, result in enumerate(item["results"], 1):
+            published = result.get("published_date") or "no date given"
             context += f"  {i}. {result.get('title', 'N/A')}\n"
+            context += f"     URL: {result.get('url', 'N/A')} | Published: {published}\n"
             context += f"     {result.get('content', 'N/A')}\n"
 
     # Step 3: Build enriched prompt
@@ -232,11 +253,28 @@ def generate_briefing() -> str:
         ],
     )
 
-    # Step 5: Extract and return briefing
+    # Step 5: Extract briefing
     briefing = response.choices[0].message.content.strip()
 
     if not briefing:
         raise RuntimeError("Groq returned an empty briefing")
+
+    # Step 6: Append the real sources actually consulted, deduplicated by URL.
+    # These are the live search results we fed the model, so they're grounded
+    # references — not anything the model might invent.
+    seen = set()
+    source_lines = []
+    for item in search_results:
+        for result in item["results"]:
+            url = result.get("url")
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            title = (result.get("title") or "").strip() or url
+            source_lines.append(f"- {title}: {url}")
+
+    if source_lines:
+        briefing += "\n\n🔗 SOURCES CONSULTED\n" + "\n".join(source_lines)
 
     return briefing
 
