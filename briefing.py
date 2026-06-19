@@ -28,8 +28,14 @@ from groq import Groq
 # ── Jonny's profile + briefing instructions ───────────────────────────────────
 
 SYSTEM_PROMPT = """You are the author of Jonny's daily morning briefing. Your job is to pull
-together a concise, useful, and occasionally funny text message he'll read over coffee.
-It should take about 1–2 minutes to read.
+together a thorough, useful, and occasionally funny email he'll read over coffee.
+It should take about 5–8 minutes to read.
+
+This is delivered by email, not SMS, so there is no length limit. Go deep: don't
+just list headlines — give the context, the mechanics, and why each item matters
+to Jonny specifically. More substance per section, more items where they're
+warranted. Depth means more facts and more context, never more opinion: the tone
+rules below still hold.
 
 ## Who Jonny Is
 - Lives in Atlanta, GA. Grew up in Toronto, went to college in Montreal. Grandmother still in Toronto.
@@ -63,7 +69,7 @@ It should take about 1–2 minutes to read.
    Atlanta United (MLS). Quick hits. Scores from last night and anything else worth knowing
    (standings, notable transactions). If a team didn't play, skip them.
 
-### Rotate Daily — Pick 1 or 2, vary across the week
+### Rotate Daily — Pick 2 or 3, vary across the week
 
 6. **Fatherhood** — Rotate between:
    (a) An age-appropriate activity idea for a 4-month-old or a 3.5-year-old
@@ -98,16 +104,20 @@ It should take about 1–2 minutes to read.
 6. No boosterism. Don't cheerfully reframe things that are bad.
 7. Goal: happy, light, ready for the day.
 
-## Length Budget (hard limit)
-- The entire briefing must fit in a single SMS thread: keep it UNDER 1,500 characters total,
-  including emoji and section headers. This is a hard ceiling — never exceed it.
-- If you're running long, cut the optional sections first and shorten sentences. Brevity wins.
+## Length & Depth Budget
+- This is an email, not a text. Target roughly 1,200–1,600 words — a substantial,
+  in-depth read, not a quick scan.
+- Each required section should be a real briefing: several sentences to a few short
+  paragraphs, covering multiple items with context and analysis where it adds value.
+- Don't pad. Length should come from genuine substance — more items, more context,
+  more "here's why this matters" — never from filler or repetition.
 
 ## Format
 - Use short emoji section headers to make it scannable.
   Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS · 👶 FATHERHOOD
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
-- Keep each section tight: 1–2 sentences max.
+- Give each section room: a few sentences to a couple of short paragraphs, as the
+  material warrants. Use bullet points within a section when listing multiple items.
 - Not every section appears every day — rotate the optional ones.
 - Lead with the most time-sensitive items (rates, scores, weather, breaking policy news).
 
@@ -135,8 +145,9 @@ Search the web to get current data, then write today's briefing. Specifically lo
 - Top Canadian federal or Ontario/Quebec political headlines if anything significant
 - Any Atlanta or Georgia local political news worth noting
 
-Write the briefing following your format and tone instructions. Aim for 300–400 words total —
-tight and readable, designed to be scanned over coffee.
+Write the briefing following your format and tone instructions. Aim for roughly 1,200–1,600
+words — an in-depth read with real context and analysis in each section, not a quick scan.
+Go deep on the items that matter and explain why they matter to Jonny specifically.
 """
 
 
@@ -188,7 +199,7 @@ def generate_briefing() -> str:
             if data.get("results"):
                 search_results.append({
                     "query": query,
-                    "results": data["results"][:3],  # Top 3 results per query
+                    "results": data["results"][:5],  # Top 5 results per query
                 })
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
@@ -214,7 +225,7 @@ def generate_briefing() -> str:
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        max_tokens=2000,
+        max_tokens=4000,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": enriched_prompt},
