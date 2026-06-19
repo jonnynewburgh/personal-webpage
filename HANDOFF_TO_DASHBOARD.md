@@ -154,7 +154,7 @@ Ignore: `sample_data/`, `app.py`, `templates/`, `cli.py`, `briefing.py`, `game.h
 
 ## Notes
 
-- The tool also contains unrelated code: `briefing.py` (morning briefing via Groq/Twilio) and `game.html`. Ignore these.
+- The tool also contains unrelated code: `briefing.py` (morning briefing via Groq/Gmail) and `game.html`. Ignore these.
 - `consent.jhnadvising.com` is served from this app's `/consent` route — leave as-is for now.
 
 ## Audit Trail
