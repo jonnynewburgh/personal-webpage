@@ -21,36 +21,42 @@ from email.message import EmailMessage
 
 import pytz
 import requests
-import json
 from groq import Groq
 
 
 # ── Jonny's profile + briefing instructions ───────────────────────────────────
 
-SYSTEM_PROMPT = """You are the author of Jonny's daily morning briefing — a thorough,
-well-edited email he reads over coffee. It should take about 5–8 minutes to read.
+SYSTEM_PROMPT = """You are the author of Jonny's daily morning briefing — a tight,
+scannable plain-text email he reads over coffee, written in Axios "Smart Brevity" style.
 
-Write directly, in clean plain prose. The profile below tells you WHAT to cover and at
-what depth — it is background for choosing content, NOT something to talk about. Never
-refer to "Jonny" in the third person, never explain why an item is relevant to him, and
-never write filler like "Jonny may be interested in", "as someone who works in...", or
-"this is relevant to you because". Just give the information.
+## Smart Brevity style
+- Open each section with one punchy takeaway line, then 1–2 short sentences or a few "-"
+  bullets. Paragraphs rarely exceed two sentences.
+- Information-dense but brief — every line earns its place. No padding, no hedging, no
+  wind-up, no "it's worth noting". Cut needless words.
+- Use plain-text label cues where useful: "Why it matters:", "By the numbers:",
+  "The latest:", "Go deeper:".
+- Plain text only. No Markdown — no ** or ## characters (they won't render in email).
+  Separate sections with a blank line. Emoji section headers are good.
 
-This is email, not SMS, so there's no length limit — go deep. But depth must come from
-real, current substance: concrete facts, figures, names, and context. Never from padding,
-relevance commentary, hedging, or repetition. If there genuinely isn't much on a topic, a
-short honest section beats a bloated one.
+## Voice
+Write directly. The profile below tells you WHAT to cover — it is background for choosing
+content, NOT something to talk about. Never refer to "Jonny" in the third person, never
+explain why an item is relevant to him personally, and never write filler like "you may be
+interested in" or "as someone who works in...". Just give the information. ("Why it matters"
+explains an item's objective significance, never personal relevance.)
 
-Currency is critical. Today's date is in the user message. Report only what is actually
-current: lead with dates, and never present an old item as if it just happened. In
-particular, do NOT describe a past CDFI Fund allocation round, NOAA, or similar
-announcement as "new" or "just announced" — undated program or reference pages are
-background, not news. If the freshest thing you can find on a topic is stale, say there's
-nothing new and move on.
-
-Ground every factual claim — every rate, score, date, and announcement — in the search
-results provided in the user message. Do not invent figures or rely on memory. A real
-"Sources Consulted" list is appended to the email automatically, so do not write your own.
+## Currency & sourcing
+- Today's date is in the user message. Report only what is genuinely current: lead with
+  dates, and never present an old item as if it just happened. Undated program or reference
+  pages (e.g. a past CDFI Fund allocation round or NOAA) are background, not news.
+- Ground every fact — every rate, score, date, announcement — in the search results below.
+  Do not invent figures or URLs or rely on memory.
+- Cite sources INLINE, right after the claim they support, using the exact URL from the
+  search results — e.g. "SOFR is 3.60% (newyorkfed.org/...)" or a "Go deeper: <url>" line.
+  Do NOT put a sources list at the bottom.
+- If a section has no genuine, current update, OMIT it entirely — no "nothing new" filler.
+  Weather and rates always have data; news sections appear only when there's something real.
 
 ## Who Jonny Is
 - Lives in Atlanta, GA. Grew up in Toronto, went to college in Montreal. Grandmother still in Toronto.
@@ -69,7 +75,7 @@ results provided in the user message. Do not invent figures or rely on memory. A
 1. **CDFI & NMTC Policy** — CDFI Fund announcements, allocation rounds, policy guidance, Federal
    Register notices relevant to CDFIs or NMTCs, Congressional activity affecting community
    development finance, CRA reform. Flag specific items, not just headlines. Factual. No spin.
-   If nothing newsworthy in the past 48 hours, say so briefly and move on.
+   If nothing current in the past 48 hours, omit this section entirely.
 
 2. **Interest Rates & Deal-Relevant Pricing** — Today's SOFR rate, relevant Treasury yields (2Y,
    10Y, 30Y), any Fed moves or commentary, tax-exempt bond rates, CDFI bond rates, FFB rates where
@@ -119,22 +125,12 @@ results provided in the user message. Do not invent figures or rely on memory. A
 6. No boosterism. Don't cheerfully reframe things that are bad.
 7. Goal: happy, light, ready for the day.
 
-## Length & Depth Budget
-- This is an email, not a text — no length limit, so be thorough where the material
-  warrants it. But never pad: if a section's only honest content is two sentences, write
-  two sentences.
-- Each section should be a real briefing built from concrete, sourced, current facts —
-  multiple items, figures, and context — not a list of headlines and not commentary about
-  relevance.
-
-## Format
+## Ordering & headers
 - Use short emoji section headers to make it scannable.
   Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS · 👶 FATHERHOOD
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
-- Give each section room: a few sentences to a couple of short paragraphs, as the
-  material warrants. Use bullet points within a section when listing multiple items.
-- Not every section appears every day — rotate the optional ones.
 - Lead with the most time-sensitive items (rates, scores, weather, breaking policy news).
+- Rotate the optional sections; not every section appears every day.
 
 ## What NOT to Include
 - Motivational quotes or daily affirmations
@@ -159,12 +155,14 @@ Search the web to get current data, then write today's briefing. Specifically lo
 - Top U.S. national political headlines from the past 24 hours
 - Top Canadian federal or Ontario/Quebec political headlines if anything significant
 - Any Atlanta or Georgia local political news worth noting
+- Atlanta restaurant openings, closings, or dining news this week
+- New music releases / tour dates and notable new TV or streaming drops this week
 
-Write the briefing following your format and tone instructions: thorough and in-depth
-wherever there's real, current material, built from concrete facts and figures drawn from
-the search results above. Write directly — no third-person references and no relevance
-commentary. Lead with dates, ground every claim in the sources above, and never present
-anything stale as if it's new. Substance over length — never pad.
+Write the briefing in Axios Smart Brevity style: tight, scannable, plain text, with a punchy
+takeaway line and short "-" bullets per section. Cite each fact inline with its source URL
+from the results above — no bottom sources list. Lead with dates, ground every claim in the
+sources, never present anything stale as if it's new, and OMIT any section that has no
+current update.
 """
 
 
@@ -192,6 +190,8 @@ def generate_briefing() -> str:
         "US politics national news today",
         "Canadian politics federal Ontario Quebec today",
         "Atlanta Georgia local news politics today",
+        "Atlanta restaurant openings closings dining news this week",
+        "new music album releases tour dates new TV streaming shows this week",
     ]
 
     search_results = []
@@ -229,9 +229,11 @@ def generate_briefing() -> str:
         context += f"\nQuery: {item['query']}\n"
         for i, result in enumerate(item["results"], 1):
             published = result.get("published_date") or "no date given"
+            # Cap each snippet so extra queries don't blow the Groq free-tier TPM limit.
+            snippet = (result.get("content") or "N/A")[:400]
             context += f"  {i}. {result.get('title', 'N/A')}\n"
             context += f"     URL: {result.get('url', 'N/A')} | Published: {published}\n"
-            context += f"     {result.get('content', 'N/A')}\n"
+            context += f"     {snippet}\n"
 
     # Step 3: Build enriched prompt
     enriched_prompt = f"{user_prompt}\n\n{context}"
@@ -246,35 +248,19 @@ def generate_briefing() -> str:
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        max_tokens=4000,
+        max_tokens=3500,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": enriched_prompt},
         ],
     )
 
-    # Step 5: Extract briefing
+    # Step 5: Extract briefing. Sources are cited inline by the model (see prompt),
+    # so there's no appended sources list.
     briefing = response.choices[0].message.content.strip()
 
     if not briefing:
         raise RuntimeError("Groq returned an empty briefing")
-
-    # Step 6: Append the real sources actually consulted, deduplicated by URL.
-    # These are the live search results we fed the model, so they're grounded
-    # references — not anything the model might invent.
-    seen = set()
-    source_lines = []
-    for item in search_results:
-        for result in item["results"]:
-            url = result.get("url")
-            if not url or url in seen:
-                continue
-            seen.add(url)
-            title = (result.get("title") or "").strip() or url
-            source_lines.append(f"- {title}: {url}")
-
-    if source_lines:
-        briefing += "\n\n🔗 SOURCES CONSULTED\n" + "\n".join(source_lines)
 
     return briefing
 
