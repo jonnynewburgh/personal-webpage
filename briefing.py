@@ -17,7 +17,7 @@ import os
 import re
 import sys
 import smtplib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.message import EmailMessage
 
 import pytz
@@ -83,10 +83,10 @@ explains an item's objective significance, never personal relevance.)
    credit" or general finance stories. If there's nothing genuinely on-topic and current,
    omit this section entirely (do not write a "no announcements" line).
 
-2. **Interest Rates & Deal-Relevant Pricing** — Today's SOFR rate and Treasury yields at the
-   3-month, 2-year, 7-year, and 10-year tenors; any Fed moves or commentary; tax-exempt bond
-   rates, CDFI bond rates, FFB rates where available. Frame as data. Let Jonny draw his own
-   conclusions. Report whichever tenors the sources actually give; omit any you can't source.
+2. **Interest Rates & Deal-Relevant Pricing** — SOFR and Treasury yields at the 3-month,
+   2-year, 7-year, and 10-year tenors come from the "AUTHORITATIVE RATES" block — use those
+   exact figures and their source URLs. Add any Fed moves or commentary from the news results.
+   Frame as data. Let Jonny draw his own conclusions.
 
 3. **Atlanta Weather** — One or two sentences. Today's forecast only.
 
@@ -200,6 +200,70 @@ def strip_filler(briefing: str) -> str:
     return "\n\n".join(cleaned)
 
 
+def fetch_rates() -> list:
+    """Fetch authoritative current rates from structured sources, not web search.
+
+    SOFR comes from the NY Fed reference-rates API; the Treasury par yield curve
+    (3mo/2yr/7yr/10yr) from Treasury's daily XML feed. Both are keyless. Each source
+    is failure-tolerant — a failed fetch just omits those rates, never raises.
+
+    Returns a list of (label, value, as_of_date, source_url) tuples.
+    """
+    rates = []
+
+    # SOFR — Federal Reserve Bank of New York
+    try:
+        r = requests.get(
+            "https://markets.newyorkfed.org/api/rates/secured/sofr/last/1.json",
+            timeout=15,
+        )
+        r.raise_for_status()
+        ref = r.json()["refRates"][0]
+        rates.append((
+            "SOFR", ref["percentRate"], ref["effectiveDate"],
+            "https://www.newyorkfed.org/markets/reference-rates/sofr",
+        ))
+    except Exception as e:
+        print(f"  Warning: SOFR fetch failed: {e}")
+
+    # Treasury par yield curve — latest published business day. Try the current
+    # month; early in a month it can be empty, so fall back to the previous month.
+    def _fetch_curve_xml(yyyymm):
+        url = (
+            "https://home.treasury.gov/resource-center/data-chart-center/"
+            "interest-rates/pages/xml?data=daily_treasury_yield_curve"
+            f"&field_tdr_date_value_month={yyyymm}"
+        )
+        resp = requests.get(url, timeout=20)
+        resp.raise_for_status()
+        return resp.text
+
+    try:
+        now = datetime.now(pytz.timezone("America/New_York"))
+        xml = _fetch_curve_xml(now.strftime("%Y%m"))
+        if not re.search(r"<d:NEW_DATE", xml):
+            prev = (now.replace(day=1) - timedelta(days=1)).strftime("%Y%m")
+            xml = _fetch_curve_xml(prev)
+
+        def last_val(tag):
+            vals = re.findall(rf"<d:{tag}[^>]*>([^<]+)</d:{tag}>", xml)
+            return vals[-1] if vals else None
+
+        dates = re.findall(r"<d:NEW_DATE[^>]*>([^<]+)</d:NEW_DATE>", xml)
+        as_of = dates[-1][:10] if dates else None
+        src = ("https://home.treasury.gov/resource-center/data-chart-center/"
+               "interest-rates/TextView?type=daily_treasury_yield_curve")
+        for label, tag in [("3-month", "BC_3MONTH"), ("2-year", "BC_2YEAR"),
+                           ("7-year", "BC_7YEAR"), ("10-year", "BC_10YEAR")]:
+            val = last_val(tag)
+            if val:
+                rates.append((label, val, as_of, src))
+    except Exception as e:
+        print(f"  Warning: Treasury yield curve fetch failed: {e}")
+
+    return rates
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -215,13 +279,10 @@ def generate_briefing() -> str:
     print("  Fetching web search results...")
     # Time-sensitive queries use Tavily's news topic + a recency window ("days")
     # so they return actual recent stories instead of evergreen landing pages or
-    # year-old announcements. Rates and weather stay on general search (data pages,
-    # not "news"). Empty results are fine — the prompt omits sections with no update.
+    # year-old announcements. Weather stays on general search (data page, not "news").
+    # Empty results are fine — the prompt omits sections with no update. SOFR and the
+    # Treasury curve come from structured APIs (fetch_rates), not web search.
     search_queries = [
-        # Rate pages are data-dense tables — use a bigger snippet cap so the full
-        # curve survives truncation, and split SOFR out so it isn't crowded out.
-        {"q": "current SOFR rate today secured overnight financing rate New York Fed", "cap": 900},
-        {"q": "US Treasury daily par yield curve rates today 3-month 2-year 7-year 10-year", "cap": 1500},
         {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 7},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
@@ -281,6 +342,19 @@ def generate_briefing() -> str:
             context += f"  {i}. {result.get('title', 'N/A')}\n"
             context += f"     URL: {result.get('url', 'N/A')} | Published: {published}\n"
             context += f"     {snippet}\n"
+
+    # Step 2b: Authoritative rates from structured sources (not web search), so the
+    # rates section is always complete and accurate. Prepended to the context and
+    # marked authoritative so the model uses these exact figures and source URLs.
+    rates = fetch_rates()
+    if rates:
+        rates_block = (
+            "=== AUTHORITATIVE RATES — use these EXACT figures and source URLs for the "
+            "rates section; do NOT substitute web-search numbers ===\n"
+        )
+        for label, val, as_of, url in rates:
+            rates_block += f"- {label}: {val}% (as of {as_of}) — source: {url}\n"
+        context = rates_block + "\n" + context
 
     # Step 3: Build enriched prompt
     enriched_prompt = f"{user_prompt}\n\n{context}"
