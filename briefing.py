@@ -181,7 +181,10 @@ def generate_briefing() -> str:
     # year-old announcements. Rates and weather stay on general search (data pages,
     # not "news"). Empty results are fine — the prompt omits sections with no update.
     search_queries = [
-        {"q": "SOFR rate today and US Treasury yields 3-month 2-year 7-year 10-year"},
+        # Rate pages are data-dense tables — use a bigger snippet cap so the full
+        # curve survives truncation, and split SOFR out so it isn't crowded out.
+        {"q": "current SOFR rate today secured overnight financing rate New York Fed", "cap": 900},
+        {"q": "US Treasury yield curve today 3-month 2-year 7-year 10-year yields", "cap": 1200},
         {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 7},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
@@ -222,6 +225,7 @@ def generate_briefing() -> str:
                 search_results.append({
                     "query": query,
                     "results": data["results"][:3],  # Top 3 per query (TPM-bounded)
+                    "cap": spec.get("cap", 400),      # snippet char cap for this query
                 })
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
@@ -232,10 +236,11 @@ def generate_briefing() -> str:
     context = "=== WEB SEARCH RESULTS ===\n"
     for item in search_results:
         context += f"\nQuery: {item['query']}\n"
+        cap = item.get("cap", 400)
         for i, result in enumerate(item["results"], 1):
             published = result.get("published_date") or "no date given"
             # Cap each snippet so extra queries don't blow the Groq free-tier TPM limit.
-            snippet = (result.get("content") or "N/A")[:400]
+            snippet = (result.get("content") or "N/A")[:cap]
             context += f"  {i}. {result.get('title', 'N/A')}\n"
             context += f"     URL: {result.get('url', 'N/A')} | Published: {published}\n"
             context += f"     {snippet}\n"
