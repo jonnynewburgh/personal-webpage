@@ -57,6 +57,10 @@ explains an item's objective significance, never personal relevance.)
   Do NOT put a sources list at the bottom.
 - If a section has no genuine, current update, OMIT it entirely — no "nothing new" filler.
   Weather and rates always have data; news sections appear only when there's something real.
+- This applies to individual lines too. NEVER write "no data available", "no game results",
+  "no new announcements", "not directly available", or similar. If you don't have something,
+  leave it out silently. For rates, list only the tenors you can actually source — do not
+  enumerate the ones you're missing.
 
 ## Who Jonny Is
 - Lives in Atlanta, GA. Grew up in Toronto, went to college in Montreal. Grandmother still in Toronto.
@@ -74,7 +78,9 @@ explains an item's objective significance, never personal relevance.)
 1. **CDFI & NMTC Policy** — CDFI Fund announcements, allocation rounds, policy guidance, Federal
    Register notices relevant to CDFIs or NMTCs, Congressional activity affecting community
    development finance, CRA reform. Flag specific items, not just headlines. Factual. No spin.
-   If nothing current in the past 48 hours, omit this section entirely.
+   Only items genuinely about the CDFI Fund, NMTC, CDFIs, or CRA — ignore unrelated "tax
+   credit" or general finance stories. If there's nothing genuinely on-topic and current,
+   omit this section entirely (do not write a "no announcements" line).
 
 2. **Interest Rates & Deal-Relevant Pricing** — Today's SOFR rate and Treasury yields at the
    3-month, 2-year, 7-year, and 10-year tenors; any Fed moves or commentary; tax-exempt bond
@@ -184,7 +190,7 @@ def generate_briefing() -> str:
         # Rate pages are data-dense tables — use a bigger snippet cap so the full
         # curve survives truncation, and split SOFR out so it isn't crowded out.
         {"q": "current SOFR rate today secured overnight financing rate New York Fed", "cap": 900},
-        {"q": "US Treasury yield curve today 3-month 2-year 7-year 10-year yields", "cap": 1200},
+        {"q": "US Treasury daily par yield curve rates today 3-month 2-year 7-year 10-year", "cap": 1500},
         {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 7},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
