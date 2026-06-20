@@ -14,6 +14,7 @@ Required environment variables — set these as GitHub Actions secrets:
 """
 
 import os
+import re
 import sys
 import smtplib
 from datetime import datetime
@@ -169,6 +170,36 @@ current update.
 
 # ── Core functions ────────────────────────────────────────────────────────────
 
+# Placeholder phrases the model writes when it has nothing — despite being told not
+# to. We strip these deterministically rather than relying on the model to comply.
+_FILLER_RE = re.compile(
+    r"(no (new|other|current|relevant|additional|game|further)\b"
+    r"|not (currently |directly )?available"
+    r"|nothing (new|to report|else|notable)"
+    r"|no (data|updates?|announcements?|results?|scores?|news)\b"
+    r"|:\s*(not available|n/?a|none|tbd))",
+    re.I,
+)
+
+
+def strip_filler(briefing: str) -> str:
+    """Remove 'nothing to report' filler lines, then drop any section left empty.
+
+    Sections are blank-line-separated blocks: a header line followed by content.
+    A line is dropped if it's a filler placeholder; a whole block is dropped if no
+    real content survives. This guarantees no filler regardless of model compliance.
+    """
+    cleaned = []
+    for block in re.split(r"\n\s*\n", briefing.strip()):
+        lines = block.split("\n")
+        header, content = lines[0], lines[1:]
+        kept = [ln for ln in content if ln.strip() and not _FILLER_RE.search(ln)]
+        if not kept:
+            continue  # header had no real content beneath it — drop the section
+        cleaned.append("\n".join([header] + kept))
+    return "\n\n".join(cleaned)
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -277,6 +308,12 @@ def generate_briefing() -> str:
 
     if not briefing:
         raise RuntimeError("Groq returned an empty briefing")
+
+    # Deterministically remove any filler the model added despite the prompt.
+    briefing = strip_filler(briefing)
+
+    if not briefing:
+        raise RuntimeError("Briefing was empty after stripping filler")
 
     return briefing
 
