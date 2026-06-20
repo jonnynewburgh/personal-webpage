@@ -61,7 +61,6 @@ explains an item's objective significance, never personal relevance.)
 ## Who Jonny Is
 - Lives in Atlanta, GA. Grew up in Toronto, went to college in Montreal. Grandmother still in Toronto.
 - Jewish.
-- Father of two: an infant (4 months) and a toddler (3.5 years).
 - CFA charterholder working in community development finance, specializing in New Markets Tax Credits
   (NMTC) — financing charter schools, health centers, early care & education centers, and community
   facilities.
@@ -77,14 +76,17 @@ explains an item's objective significance, never personal relevance.)
    development finance, CRA reform. Flag specific items, not just headlines. Factual. No spin.
    If nothing current in the past 48 hours, omit this section entirely.
 
-2. **Interest Rates & Deal-Relevant Pricing** — Today's SOFR rate, relevant Treasury yields (2Y,
-   10Y, 30Y), any Fed moves or commentary, tax-exempt bond rates, CDFI bond rates, FFB rates where
-   available. Frame as data. Let Jonny draw his own conclusions.
+2. **Interest Rates & Deal-Relevant Pricing** — Today's SOFR rate and Treasury yields at the
+   3-month, 2-year, 7-year, and 10-year tenors; any Fed moves or commentary; tax-exempt bond
+   rates, CDFI bond rates, FFB rates where available. Frame as data. Let Jonny draw his own
+   conclusions. Report whichever tenors the sources actually give; omit any you can't source.
 
 3. **Atlanta Weather** — One or two sentences. Today's forecast only.
 
 4. **Politics** — U.S. national (major developments only), Canadian federal and Ontario/Quebec when
-   relevant, Atlanta/Georgia local. Straight reporting. No doom, no editorial framing.
+   relevant, Atlanta/Georgia local. Straight reporting. No doom, no editorial framing. Name the
+   specific development — who, what, when. If the only material is generic, undated, or a news
+   site's landing page, OMIT politics rather than reporting vague filler.
 
 5. **Sports** — Braves, Blue Jays (MLB); Maple Leafs, Canadiens, proposed Atlanta NHL team (NHL);
    Atlanta United (MLS). Quick hits. Scores from last night and anything else worth knowing
@@ -92,28 +94,21 @@ explains an item's objective significance, never personal relevance.)
 
 ### Rotate Daily — Pick 2 or 3, vary across the week
 
-6. **Fatherhood** — Rotate between:
-   (a) An age-appropriate activity idea for a 4-month-old or a 3.5-year-old
-   (b) A developmental milestone or thing to watch for at those ages
-   (c) A dad joke — genuinely funny, dry over forced
-   Don't include all three on the same day.
-
-7. **Food & Cooking** — Rotate between:
+6. **Food & Cooking** — Rotate between:
    Atlanta restaurant news (new openings, notable closings, dining news), a recipe idea matched to
    Jonny's skill level (expert home cook) and cuisine focus (West Asian, South Asian, East Asian,
    Italian, Mexican), cooking tips/techniques/equipment notes, food news or trends.
    Range spans Taco Bell to Michelin. No food snobbery.
 
-8. **Entertainment & Culture** — Rotate between:
+7. **Entertainment & Culture** — Rotate between:
    Music: new releases or tour dates from Belly Larsen, Doechii, Great Big Sea, Kacey Musgraves,
    The Band — or notable new releases generally.
    Movies/TV: new drops worth watching, especially deep cuts and under-the-radar picks; platforms
    he likely has access to; reference points are The Pitt, Colin from Accounts, The Wire, Lovesick,
    Lupin.
-   Board games: new release, strategy tip for 7 Wonders or 7 Wonders Duel, poker content, card
-   game ideas for a 3.5-year-old.
+   Board games: new release, strategy tip for 7 Wonders or 7 Wonders Duel, poker content.
 
-9. **Jewish Calendar** — Only when genuinely relevant: upcoming holiday, Shabbat times for Atlanta
+8. **Jewish Calendar** — Only when genuinely relevant: upcoming holiday, Shabbat times for Atlanta
    this week, notable community observance. Don't force it every day.
 
 ## Tone Rules
@@ -127,7 +122,7 @@ explains an item's objective significance, never personal relevance.)
 
 ## Ordering & headers
 - Use short emoji section headers to make it scannable.
-  Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS · 👶 FATHERHOOD
+  Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
 - Lead with the most time-sensitive items (rates, scores, weather, breaking policy news).
 - Rotate the optional sections; not every section appears every day.
@@ -145,7 +140,7 @@ USER_PROMPT_TEMPLATE = """Today is {weekday}, {date}. Jonny is in Atlanta, GA.
 
 Search the web to get current data, then write today's briefing. Specifically look up:
 
-- Current SOFR rate and key Treasury yields (2Y, 10Y, 30Y)
+- Current SOFR rate and Treasury yields at the 3-month, 2-year, 7-year, and 10-year tenors
 - Any Fed statements, FOMC news, or rate move commentary from the past 24 hours
 - Any CDFI Fund announcements, Federal Register CDFI/NMTC notices, or Congressional activity
   affecting community development finance from the past 48 hours
@@ -181,17 +176,21 @@ def generate_briefing() -> str:
 
     # Step 1: Fetch web search results via Tavily API
     print("  Fetching web search results...")
+    # Time-sensitive queries use Tavily's news topic + a recency window ("days")
+    # so they return actual recent stories instead of evergreen landing pages or
+    # year-old announcements. Rates and weather stay on general search (data pages,
+    # not "news"). Empty results are fine — the prompt omits sections with no update.
     search_queries = [
-        "SOFR rate Treasury yields 2Y 10Y 30Y today",
-        "Fed FOMC announcement rate decision today",
-        "CDFI Fund allocation Federal Register NMTC",
-        "Atlanta weather forecast today",
-        "Braves Blue Jays Maple Leafs Canadiens Atlanta United scores",
-        "US politics national news today",
-        "Canadian politics federal Ontario Quebec today",
-        "Atlanta Georgia local news politics today",
-        "Atlanta restaurant openings closings dining news this week",
-        "new music album releases tour dates new TV streaming shows this week",
+        {"q": "SOFR rate today and US Treasury yields 3-month 2-year 7-year 10-year"},
+        {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 7},
+        {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
+        {"q": "Atlanta weather forecast today"},
+        {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
+        {"q": "top US national political news developments", "days": 2},
+        {"q": "Canada federal Ontario Quebec political news", "days": 3},
+        {"q": "Atlanta Georgia state politics news", "days": 3},
+        {"q": "Atlanta restaurant opening closing dining news", "days": 21},
+        {"q": "new music album release and new TV streaming show", "days": 14},
     ]
 
     search_results = []
@@ -199,16 +198,22 @@ def generate_briefing() -> str:
     if not tavily_api_key:
         raise RuntimeError("TAVILY_API_KEY not set")
 
-    for query in search_queries:
+    for spec in search_queries:
+        query = spec["q"]
+        payload = {
+            "api_key": tavily_api_key,
+            "query": query,
+            "max_results": 5,
+            "include_answer": True,
+        }
+        # A "days" window implies a news-topic search (recency-ranked, dated results).
+        if "days" in spec:
+            payload["topic"] = "news"
+            payload["days"] = spec["days"]
         try:
             response = requests.post(
                 "https://api.tavily.com/search",
-                json={
-                    "api_key": tavily_api_key,
-                    "query": query,
-                    "max_results": 5,
-                    "include_answer": True,
-                },
+                json=payload,
                 timeout=10,
             )
             response.raise_for_status()
