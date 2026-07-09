@@ -53,9 +53,12 @@ explains an item's objective significance, never personal relevance.)
   pages (e.g. a past CDFI Fund allocation round or NOAA) are background, not news.
 - Ground every fact — every rate, score, date, announcement — in the search results below.
   Do not invent figures or URLs or rely on memory.
-- Cite sources INLINE, right after the claim they support, using the exact URL from the
-  search results — e.g. "SOFR is 3.60% (newyorkfed.org/...)" or a "Go deeper: <url>" line.
-  Do NOT put a sources list at the bottom.
+- Cite sources INLINE, right after the claim they support, as a markdown link using the
+  publication or site name as the link text and the exact URL from the search results —
+  e.g. "SOFR is 3.60% ([New York Fed](https://newyorkfed.org/...))" or a
+  "Go deeper: [Axios](https://...)" line. Use the outlet/site name (e.g. "Reuters",
+  "CDFI Fund", "AccuWeather"), never the raw URL, as the visible link text. Do NOT put a
+  sources list at the bottom.
 - If a section has no genuine, current update, OMIT it entirely — no "nothing new" filler.
   Weather and rates always have data; news sections appear only when there's something real.
 - This applies to individual lines too. NEVER write "no data available", "no game results",
@@ -161,7 +164,8 @@ Search the web to get current data, then write today's briefing. Specifically lo
 - New music releases / tour dates and notable new TV or streaming drops this week
 
 Write the briefing in Axios Smart Brevity style: tight, scannable, plain text, with a punchy
-takeaway line and short "-" bullets per section. Cite each fact inline with its source URL
+takeaway line and short "-" bullets per section. Cite each fact inline as a markdown link
+using the source's name as the link text (e.g. "[Reuters](https://...)"), not the raw URL,
 from the results above — no bottom sources list. Lead with dates, ground every claim in the
 sources, never present anything stale as if it's new, and OMIT any section that has no
 current update.
@@ -392,6 +396,44 @@ def generate_briefing() -> str:
     return briefing
 
 
+_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^\s)]+)\)")
+
+
+def _markdown_links_to_html(text: str) -> str:
+    """Convert [Source Name](url) markdown links to <a> tags and escape the rest."""
+    import html as _html
+
+    out = []
+    pos = 0
+    for m in _MD_LINK_RE.finditer(text):
+        out.append(_html.escape(text[pos:m.start()]))
+        label, url = m.group(1), m.group(2)
+        out.append(f'<a href="{_html.escape(url)}">{_html.escape(label)}</a>')
+        pos = m.end()
+    out.append(_html.escape(text[pos:]))
+    return "".join(out)
+
+
+def _briefing_to_html(message: str) -> str:
+    """Render the plain-text briefing as HTML, turning markdown links into <a> tags."""
+    paragraphs = message.strip().split("\n\n")
+    blocks = []
+    for para in paragraphs:
+        html_para = _markdown_links_to_html(para).replace("\n", "<br>\n")
+        blocks.append(f"<p>{html_para}</p>")
+    body = "\n".join(blocks)
+    return (
+        '<html><body style="font-family: -apple-system, Helvetica, Arial, sans-serif; '
+        'font-size: 15px; line-height: 1.5; color: #1a1a1a;">\n'
+        f"{body}\n</body></html>"
+    )
+
+
+def _markdown_links_to_plain(text: str) -> str:
+    """Fallback for non-HTML mail clients: '[Name](url)' -> 'Name (url)'."""
+    return _MD_LINK_RE.sub(r"\1 (\2)", text)
+
+
 def send_email(message: str) -> None:
     """Send the briefing to Jonny via Gmail SMTP.
 
@@ -399,6 +441,10 @@ def send_email(message: str) -> None:
     Connects over implicit TLS (SMTP_SSL) on port 465, so the exchange is
     encrypted from the first byte with no STARTTLS upgrade step. Email has
     no practical body-length limit, so the full briefing is sent as-is.
+
+    Sent as multipart/alternative: an HTML part with source names as real
+    hyperlinks, and a plain-text fallback with "Name (url)" for clients that
+    don't render HTML.
 
     Fails closed: a missing or blank required variable raises before any
     network call, and any SMTP error propagates to the caller.
@@ -418,7 +464,8 @@ def send_email(message: str) -> None:
     email["Subject"] = f"Morning Briefing — {date_str}"
     email["From"] = gmail_address
     email["To"] = recipient
-    email.set_content(message)
+    email.set_content(_markdown_links_to_plain(message))
+    email.add_alternative(_briefing_to_html(message), subtype="html")
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_address, app_password)
