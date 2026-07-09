@@ -430,15 +430,18 @@ def send_email(message: str) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def check_atlanta_time() -> bool:
-    """Return True only if Atlanta's clock is currently between 6:00–7:00 AM.
+    """Return True only if Atlanta's clock is currently between 6:00–9:00 AM.
 
     The workflow fires at both 10:30 UTC and 11:30 UTC every day to cover
     EDT and EST. This check ensures exactly one of those runs actually sends
-    the briefing, regardless of DST transitions.
+    the briefing, regardless of DST transitions. Widened from a 1-hour to a
+    3-hour window because GitHub's scheduled-cron queue routinely delays
+    "schedule"-triggered runs by 2-4+ hours, which was causing every run to
+    land outside a narrower window and silently skip for weeks.
     """
     atlanta_tz = pytz.timezone("America/New_York")
     hour = datetime.now(atlanta_tz).hour
-    return 6 <= hour < 7
+    return 6 <= hour < 9
 
 
 def main():
