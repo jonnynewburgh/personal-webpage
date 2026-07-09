@@ -51,6 +51,12 @@ explains an item's objective significance, never personal relevance.)
 - Today's date is in the user message. Report only what is genuinely current: lead with
   dates, and never present an old item as if it just happened. Undated program or reference
   pages (e.g. a past CDFI Fund allocation round or NOAA) are background, not news.
+- Breaking-news sections (Politics, Fed/rate commentary) are last-24-hours only. Check each
+  result's Published date against today's date — if it's more than 24 hours old, drop it, even
+  if it's the best or only item found. A thinner section beats a stale item reported as new.
+  CDFI & NMTC Policy moves slower, so a somewhat wider window (per the search results provided)
+  is fine there, but still lead with the actual date and never imply something is new when it
+  isn't.
 - Ground every fact — every rate, score, date, announcement — in the search results below.
   Do not invent figures or URLs or rely on memory.
 - Cite sources INLINE, right after the claim they support, as a markdown link using the
@@ -84,11 +90,8 @@ explains an item's objective significance, never personal relevance.)
 2. **Interest Rates & Deal-Relevant Pricing** — SOFR and Treasury yields at the 3-month,
    2-year, 7-year, and 10-year tenors come from the "AUTHORITATIVE RATES" block — use those
    exact figures and their source URLs. Add any Fed moves or commentary from the news results.
-   Frame as data. Let Jonny draw his own conclusions.
-   End the section with a short trend line drawn from the "AUTHORITATIVE RATE TRENDS" block —
-   one line per tenor showing the 7-day, 30-day, and 365-day change (e.g. "SOFR: +0.02 (7d),
-   -0.10 (30d), +0.15 (365d)"). Use those exact figures; do not estimate or invent them. Omit
-   any tenor or lookback window missing from that block.
+   Frame as data. Let Jonny draw his own conclusions. A trend chart is attached automatically
+   after this section — do not write a trend line or list of 7d/30d/365d changes yourself.
 
 3. **CDFI & NMTC Policy** — CDFI Fund announcements, allocation rounds, policy guidance, Federal
    Register notices relevant to CDFIs or NMTCs, Congressional activity affecting community
@@ -360,11 +363,25 @@ def build_rate_trend_chart(rates: list, rate_changes: dict) -> bytes:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.font_manager as fm
 
-    day_offsets = [365, 30, 7, 0]
     x_labels = ["365d ago", "30d ago", "7d ago", "Today"]
+    x = range(len(x_labels))
 
-    fig, ax = plt.subplots(figsize=(5.5, 2.4), dpi=140)
+    # A muted, higher-contrast palette in a deliberate order (short end to long
+    # end of the curve) instead of matplotlib's default cycle.
+    colors = {
+        "SOFR": "#2C7FB8", "3-month": "#41AB5D", "2-year": "#F2A93B",
+        "7-year": "#E4572E", "10-year": "#8856A7",
+    }
+    sans = [f.name for f in fm.fontManager.ttflist]
+    font = next((f for f in ("Segoe UI", "Helvetica Neue", "Arial") if f in sans), "DejaVu Sans")
+    plt.rcParams["font.family"] = font
+
+    fig, ax = plt.subplots(figsize=(6.4, 2.9), dpi=160)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
     plotted = False
     for label, val, _, _ in rates:
         deltas = rate_changes.get(label)
@@ -372,22 +389,43 @@ def build_rate_trend_chart(rates: list, rate_changes: dict) -> bytes:
             continue
         current = float(val)
         y = [current - deltas[365], current - deltas[30], current - deltas[7], current]
-        ax.plot(x_labels, y, marker="o", linewidth=2, label=label)
+        color = colors.get(label, "#555555")
+        ax.plot(x, y, marker="o", markersize=5.5, linewidth=2.4, color=color,
+                label=label, solid_capstyle="round", zorder=3,
+                markerfacecolor="white", markeredgewidth=1.8, markeredgecolor=color)
+        ax.annotate(f"{y[-1]:.2f}%", (x[-1], y[-1]), xytext=(8, 0),
+                    textcoords="offset points", va="center", fontsize=9,
+                    color=color, fontweight="bold")
         plotted = True
 
     if not plotted:
         plt.close(fig)
         return None
 
-    ax.set_ylabel("%")
-    ax.legend(loc="upper left", fontsize=8, frameon=False, ncol=3)
-    ax.grid(True, alpha=0.3)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+    ax.set_title("Rate Trend — Past Year", fontsize=11, fontweight="bold",
+                  color="#1a1a1a", loc="left", pad=10)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(x_labels, fontsize=9.5, color="#444444")
+    ax.set_xlim(-0.15, len(x_labels) - 0.15 + 0.55)  # room for value labels
+    ax.tick_params(axis="y", labelsize=9.5, colors="#444444")
+    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.1f}%")
+
+    ax.grid(True, axis="y", color="#dddddd", linewidth=0.7, zorder=0)
+    ax.set_axisbelow(True)
+    for spine in ("top", "right", "left"):
+        ax.spines[spine].set_visible(False)
+    ax.spines["bottom"].set_color("#bbbbbb")
+
+    legend = ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.34), ncol=5,
+                        fontsize=9, frameon=False, handlelength=1.4,
+                        columnspacing=1.2, handletextpad=0.5)
+    for text in legend.get_texts():
+        text.set_color("#444444")
+
     fig.tight_layout()
 
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", facecolor="white")
+    fig.savefig(buf, format="png", facecolor="white", bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return buf.getvalue()
 
@@ -411,13 +449,13 @@ def generate_briefing() -> str:
     # Empty results are fine — the prompt omits sections with no update. SOFR and the
     # Treasury curve come from structured APIs (fetch_rates), not web search.
     search_queries = [
-        {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 7},
+        {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 1},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
         {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
-        {"q": "US federal policy legislation regulation court ruling news", "days": 2, "keep": 4},
-        {"q": "Canada federal Ontario Quebec policy legislation news", "days": 3, "keep": 4},
-        {"q": "Atlanta Georgia state policy legislation news", "days": 3, "keep": 4},
+        {"q": "US federal policy legislation regulation court ruling news", "days": 1, "keep": 4},
+        {"q": "Canada federal Ontario Quebec policy legislation news", "days": 1, "keep": 4},
+        {"q": "Atlanta Georgia state policy legislation news", "days": 1, "keep": 4},
         {"q": "Atlanta restaurant opening closing dining news", "days": 21},
         {"q": "new music album release and new TV streaming show", "days": 14},
     ]
@@ -483,20 +521,7 @@ def generate_briefing() -> str:
         for label, val, as_of, url in rates:
             rates_block += f"- {label}: {val}% (as of {as_of}) — source: {url}\n"
         context = rates_block + "\n" + context
-
-        rate_changes = fetch_rate_changes(rates)
-        if rate_changes:
-            trend_block = (
-                "=== AUTHORITATIVE RATE TRENDS — use these EXACT changes (percentage points) "
-                "for the trend line at the end of the rates section; do NOT estimate ===\n"
-            )
-            for label, _, _, _ in rates:
-                deltas = rate_changes.get(label)
-                if not deltas:
-                    continue
-                parts = [f"{d:+.2f} ({days}d)" for days, d in sorted(deltas.items())]
-                trend_block += f"- {label}: " + ", ".join(parts) + "\n"
-            context = trend_block + "\n" + context
+    # Trend data is no longer surfaced as text — send_email() attaches a chart instead.
 
     # Step 3: Build enriched prompt
     enriched_prompt = f"{user_prompt}\n\n{context}"
