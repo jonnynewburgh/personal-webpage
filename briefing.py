@@ -346,6 +346,52 @@ def fetch_rate_changes(rates: list) -> dict:
     return changes
 
 
+def build_rate_trend_chart(rates: list, rate_changes: dict) -> bytes:
+    """Render a small line chart of each tenor's value over the last year.
+
+    Reconstructs historical points from the current value and the 7/30/365-day
+    deltas (current - delta = past value), so no extra network calls are needed
+    beyond what fetch_rate_changes already made. A tenor is only plotted if all
+    three lookback windows resolved; skips the chart entirely if nothing qualifies.
+
+    Returns PNG bytes, or None if there's nothing to plot.
+    """
+    import io
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    day_offsets = [365, 30, 7, 0]
+    x_labels = ["365d ago", "30d ago", "7d ago", "Today"]
+
+    fig, ax = plt.subplots(figsize=(5.5, 2.4), dpi=140)
+    plotted = False
+    for label, val, _, _ in rates:
+        deltas = rate_changes.get(label)
+        if not deltas or not all(d in deltas for d in (7, 30, 365)):
+            continue
+        current = float(val)
+        y = [current - deltas[365], current - deltas[30], current - deltas[7], current]
+        ax.plot(x_labels, y, marker="o", linewidth=2, label=label)
+        plotted = True
+
+    if not plotted:
+        plt.close(fig)
+        return None
+
+    ax.set_ylabel("%")
+    ax.legend(loc="upper left", fontsize=8, frameon=False, ncol=3)
+    ax.grid(True, alpha=0.3)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout()
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", facecolor="white")
+    plt.close(fig)
+    return buf.getvalue()
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -506,13 +552,23 @@ def _markdown_links_to_html(text: str) -> str:
     return "".join(out)
 
 
-def _briefing_to_html(message: str) -> str:
-    """Render the plain-text briefing as HTML, turning markdown links into <a> tags."""
+def _briefing_to_html(message: str, chart_cid: str = None) -> str:
+    """Render the plain-text briefing as HTML, turning markdown links into <a> tags.
+
+    If chart_cid is given, an inline rate-trend chart image is inserted right
+    after the rates section (the block whose header line mentions "RATE").
+    """
     paragraphs = message.strip().split("\n\n")
     blocks = []
     for para in paragraphs:
         html_para = _markdown_links_to_html(para).replace("\n", "<br>\n")
         blocks.append(f"<p>{html_para}</p>")
+        first_line = para.split("\n", 1)[0]
+        if chart_cid and "RATE" in first_line.upper():
+            blocks.append(
+                f'<p><img src="cid:{chart_cid}" alt="Rate trend chart" '
+                'style="max-width:100%;"></p>'
+            )
     body = "\n".join(blocks)
     return (
         '<html><body style="font-family: -apple-system, Helvetica, Arial, sans-serif; '
@@ -535,8 +591,8 @@ def send_email(message: str) -> None:
     no practical body-length limit, so the full briefing is sent as-is.
 
     Sent as multipart/alternative: an HTML part with source names as real
-    hyperlinks, and a plain-text fallback with "Name (url)" for clients that
-    don't render HTML.
+    hyperlinks plus an inline rate-trend chart, and a plain-text fallback
+    with "Name (url)" for clients that don't render HTML.
 
     Fails closed: a missing or blank required variable raises before any
     network call, and any SMTP error propagates to the caller.
@@ -552,12 +608,28 @@ def send_email(message: str) -> None:
     atlanta_tz = pytz.timezone("America/New_York")
     date_str = datetime.now(atlanta_tz).strftime("%A, %B %-d, %Y")
 
+    # Rebuild the rate-trend chart for the email. Cheap (a handful of already-
+    # cacheable HTTP calls, once a day) and keeps chart-building decoupled from
+    # the LLM call in generate_briefing().
+    chart_png = None
+    try:
+        rates = fetch_rates()
+        if rates:
+            chart_png = build_rate_trend_chart(rates, fetch_rate_changes(rates))
+    except Exception as e:
+        print(f"  Warning: rate trend chart build failed: {e}")
+
+    chart_cid = "rate-trend-chart" if chart_png else None
+
     email = EmailMessage()
     email["Subject"] = f"Morning Briefing — {date_str}"
     email["From"] = gmail_address
     email["To"] = recipient
     email.set_content(_markdown_links_to_plain(message))
-    email.add_alternative(_briefing_to_html(message), subtype="html")
+    email.add_alternative(_briefing_to_html(message, chart_cid), subtype="html")
+    if chart_png:
+        html_part = email.get_payload()[1]
+        html_part.add_related(chart_png, maintype="image", subtype="png", cid=chart_cid)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_address, app_password)
