@@ -79,24 +79,30 @@ explains an item's objective significance, never personal relevance.)
 
 ### Required Every Day
 
-1. **CDFI & NMTC Policy** — CDFI Fund announcements, allocation rounds, policy guidance, Federal
+1. **Atlanta Weather** — One or two sentences. Today's forecast only.
+
+2. **Interest Rates & Deal-Relevant Pricing** — SOFR and Treasury yields at the 3-month,
+   2-year, 7-year, and 10-year tenors come from the "AUTHORITATIVE RATES" block — use those
+   exact figures and their source URLs. Add any Fed moves or commentary from the news results.
+   Frame as data. Let Jonny draw his own conclusions.
+   End the section with a short trend line drawn from the "AUTHORITATIVE RATE TRENDS" block —
+   one line per tenor showing the 7-day, 30-day, and 365-day change (e.g. "SOFR: +0.02 (7d),
+   -0.10 (30d), +0.15 (365d)"). Use those exact figures; do not estimate or invent them. Omit
+   any tenor or lookback window missing from that block.
+
+3. **CDFI & NMTC Policy** — CDFI Fund announcements, allocation rounds, policy guidance, Federal
    Register notices relevant to CDFIs or NMTCs, Congressional activity affecting community
    development finance, CRA reform. Flag specific items, not just headlines. Factual. No spin.
    Only items genuinely about the CDFI Fund, NMTC, CDFIs, or CRA — ignore unrelated "tax
    credit" or general finance stories. If there's nothing genuinely on-topic and current,
    omit this section entirely (do not write a "no announcements" line).
 
-2. **Interest Rates & Deal-Relevant Pricing** — SOFR and Treasury yields at the 3-month,
-   2-year, 7-year, and 10-year tenors come from the "AUTHORITATIVE RATES" block — use those
-   exact figures and their source URLs. Add any Fed moves or commentary from the news results.
-   Frame as data. Let Jonny draw his own conclusions.
-
-3. **Atlanta Weather** — One or two sentences. Today's forecast only.
-
-4. **Politics** — U.S. national (major developments only), Canadian federal and Ontario/Quebec when
-   relevant, Atlanta/Georgia local. Straight reporting. No doom, no editorial framing. Name the
-   specific development — who, what, when. If the only material is generic, undated, or a news
-   site's landing page, OMIT politics rather than reporting vague filler.
+4. **Politics** — 4-5 items total, drawn from U.S. national, Canadian federal/Ontario/Quebec, and
+   Atlanta/Georgia local news. Prioritize actual policy substance — legislation, regulation,
+   court rulings, budget/appropriations, agency actions — over horse-race, campaign, or
+   personality-driven political coverage. Straight reporting, no doom, no editorial framing.
+   Name the specific development — who, what, when. If fewer than 4 items have genuine, current,
+   policy-relevant material, include only what's real rather than padding with vague filler.
 
 5. **Sports** — Braves, Blue Jays (MLB); Maple Leafs, Canadiens, proposed Atlanta NHL team (NHL);
    Atlanta United (MLS). Quick hits. Scores from last night and anything else worth knowing
@@ -132,10 +138,10 @@ explains an item's objective significance, never personal relevance.)
 
 ## Ordering & headers
 - Use short emoji section headers to make it scannable.
-  Examples: 🏛️ POLICY · 📊 RATES · 🌤️ WEATHER · 🗳️ POLITICS · ⚾ SPORTS
+  Examples: 🌤️ WEATHER · 📊 RATES · 🏛️ POLICY · 🗳️ POLITICS · ⚾ SPORTS
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
-- Lead with the most time-sensitive items (rates, scores, weather, breaking policy news).
-- Rotate the optional sections; not every section appears every day.
+- Weather always leads. Follow the Required Every Day order above; rotate the optional
+  sections after Sports, and not every optional section appears every day.
 
 ## What NOT to Include
 - Motivational quotes or daily affirmations
@@ -204,6 +210,21 @@ def strip_filler(briefing: str) -> str:
     return "\n\n".join(cleaned)
 
 
+_TREASURY_TENORS = [("3-month", "BC_3MONTH"), ("2-year", "BC_2YEAR"),
+                     ("7-year", "BC_7YEAR"), ("10-year", "BC_10YEAR")]
+
+
+def _fetch_curve_xml(yyyymm: str) -> str:
+    url = (
+        "https://home.treasury.gov/resource-center/data-chart-center/"
+        "interest-rates/pages/xml?data=daily_treasury_yield_curve"
+        f"&field_tdr_date_value_month={yyyymm}"
+    )
+    resp = requests.get(url, timeout=20)
+    resp.raise_for_status()
+    return resp.text
+
+
 def fetch_rates() -> list:
     """Fetch authoritative current rates from structured sources, not web search.
 
@@ -232,16 +253,6 @@ def fetch_rates() -> list:
 
     # Treasury par yield curve — latest published business day. Try the current
     # month; early in a month it can be empty, so fall back to the previous month.
-    def _fetch_curve_xml(yyyymm):
-        url = (
-            "https://home.treasury.gov/resource-center/data-chart-center/"
-            "interest-rates/pages/xml?data=daily_treasury_yield_curve"
-            f"&field_tdr_date_value_month={yyyymm}"
-        )
-        resp = requests.get(url, timeout=20)
-        resp.raise_for_status()
-        return resp.text
-
     try:
         now = datetime.now(pytz.timezone("America/New_York"))
         xml = _fetch_curve_xml(now.strftime("%Y%m"))
@@ -257,8 +268,7 @@ def fetch_rates() -> list:
         as_of = dates[-1][:10] if dates else None
         src = ("https://home.treasury.gov/resource-center/data-chart-center/"
                "interest-rates/TextView?type=daily_treasury_yield_curve")
-        for label, tag in [("3-month", "BC_3MONTH"), ("2-year", "BC_2YEAR"),
-                           ("7-year", "BC_7YEAR"), ("10-year", "BC_10YEAR")]:
+        for label, tag in _TREASURY_TENORS:
             val = last_val(tag)
             if val:
                 rates.append((label, val, as_of, src))
@@ -266,6 +276,74 @@ def fetch_rates() -> list:
         print(f"  Warning: Treasury yield curve fetch failed: {e}")
 
     return rates
+
+
+def fetch_rate_changes(rates: list) -> dict:
+    """Compute 7/30/365-day changes (in percentage points) for each current rate.
+
+    Reuses the current values from fetch_rates() and looks up the closest prior
+    value on or before each lookback date. SOFR history comes from the NY Fed's
+    bulk endpoint (one call); Treasury history requires one XML fetch per lookback
+    month since the feed is paginated by month. Failure-tolerant per tenor/window —
+    missing history just omits that line, never raises.
+
+    Returns {label: {7: delta, 30: delta, 365: delta}}, only for values found.
+    """
+    changes = {}
+    now = datetime.now(pytz.timezone("America/New_York"))
+    windows = {7: now - timedelta(days=7), 30: now - timedelta(days=30),
+               365: now - timedelta(days=365)}
+    current = {label: float(val) for label, val, _, _ in rates}
+
+    # SOFR history — one bulk call covers all three lookback windows.
+    if "SOFR" in current:
+        try:
+            r = requests.get(
+                "https://markets.newyorkfed.org/api/rates/secured/sofr/last/400.json",
+                timeout=15,
+            )
+            r.raise_for_status()
+            hist = sorted(
+                (e["effectiveDate"], float(e["percentRate"]))
+                for e in r.json()["refRates"]
+            )
+            deltas = {}
+            for days, target in windows.items():
+                target_str = target.strftime("%Y-%m-%d")
+                past = [v for d, v in hist if d <= target_str]
+                if past:
+                    deltas[days] = round(current["SOFR"] - past[-1], 2)
+            if deltas:
+                changes["SOFR"] = deltas
+        except Exception as e:
+            print(f"  Warning: SOFR history fetch failed: {e}")
+
+    # Treasury tenors — one XML fetch per lookback month (400-day history isn't
+    # available in one call like SOFR; the feed is paginated by calendar month).
+    tenor_labels = {label for label, _ in _TREASURY_TENORS if label in current}
+    if tenor_labels:
+        xml_cache = {}
+        for days, target in windows.items():
+            yyyymm = target.strftime("%Y%m")
+            try:
+                if yyyymm not in xml_cache:
+                    xml_cache[yyyymm] = _fetch_curve_xml(yyyymm)
+                xml = xml_cache[yyyymm]
+                dates = re.findall(r"<d:NEW_DATE[^>]*>([^<]+)</d:NEW_DATE>", xml)
+                target_str = target.strftime("%Y-%m-%d")
+                for label, tag in _TREASURY_TENORS:
+                    if label not in tenor_labels:
+                        continue
+                    vals = re.findall(rf"<d:{tag}[^>]*>([^<]+)</d:{tag}>", xml)
+                    pairs = [(d[:10], v) for d, v in zip(dates, vals) if d[:10] <= target_str and v]
+                    if pairs:
+                        changes.setdefault(label, {})[days] = round(
+                            current[label] - float(pairs[-1][1]), 2
+                        )
+            except Exception as e:
+                print(f"  Warning: Treasury history fetch failed ({days}d): {e}")
+
+    return changes
 
 
 def generate_briefing() -> str:
@@ -291,9 +369,9 @@ def generate_briefing() -> str:
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
         {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
-        {"q": "top US national political news developments", "days": 2},
-        {"q": "Canada federal Ontario Quebec political news", "days": 3},
-        {"q": "Atlanta Georgia state politics news", "days": 3},
+        {"q": "US federal policy legislation regulation court ruling news", "days": 2, "keep": 4},
+        {"q": "Canada federal Ontario Quebec policy legislation news", "days": 3, "keep": 4},
+        {"q": "Atlanta Georgia state policy legislation news", "days": 3, "keep": 4},
         {"q": "Atlanta restaurant opening closing dining news", "days": 21},
         {"q": "new music album release and new TV streaming show", "days": 14},
     ]
@@ -326,7 +404,7 @@ def generate_briefing() -> str:
             if data.get("results"):
                 search_results.append({
                     "query": query,
-                    "results": data["results"][:3],  # Top 3 per query (TPM-bounded)
+                    "results": data["results"][:spec.get("keep", 3)],  # TPM-bounded
                     "cap": spec.get("cap", 400),      # snippet char cap for this query
                 })
         except Exception as e:
@@ -359,6 +437,20 @@ def generate_briefing() -> str:
         for label, val, as_of, url in rates:
             rates_block += f"- {label}: {val}% (as of {as_of}) — source: {url}\n"
         context = rates_block + "\n" + context
+
+        rate_changes = fetch_rate_changes(rates)
+        if rate_changes:
+            trend_block = (
+                "=== AUTHORITATIVE RATE TRENDS — use these EXACT changes (percentage points) "
+                "for the trend line at the end of the rates section; do NOT estimate ===\n"
+            )
+            for label, _, _, _ in rates:
+                deltas = rate_changes.get(label)
+                if not deltas:
+                    continue
+                parts = [f"{d:+.2f} ({days}d)" for days, d in sorted(deltas.items())]
+                trend_block += f"- {label}: " + ", ".join(parts) + "\n"
+            context = trend_block + "\n" + context
 
     # Step 3: Build enriched prompt
     enriched_prompt = f"{user_prompt}\n\n{context}"
