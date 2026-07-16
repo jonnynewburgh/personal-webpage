@@ -17,7 +17,7 @@ import os
 import re
 import sys
 import smtplib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 
 import pytz
@@ -100,8 +100,11 @@ explains an item's objective significance, never personal relevance.)
    credit" or general finance stories. If there's nothing genuinely on-topic and current,
    omit this section entirely (do not write a "no announcements" line).
 
-3b. **Economy & Credit** — Use the "AUTHORITATIVE INDICATORS" block for the exact figures
-   and source URLs. Cover, when data is present:
+3b. **Economy & Credit** — Every item in the "AUTHORITATIVE INDICATORS" block is a fresh
+   release from the last ~36 hours (FRED-filtered). If the block is absent or empty, OMIT
+   this section entirely — do not fall back to prior-month numbers, do not describe what's
+   "typical", do not mention that data was checked. Use the exact figures and source URLs.
+   Possible items when present:
      - Labor: unemployment rate (U-3), U-6 underemployment, latest nonfarm payroll change and
        the two prior months (call out any revision to the prior print if the news results
        mention one), avg hourly earnings YoY, weekly initial jobless claims.
@@ -470,6 +473,24 @@ def fetch_indicators() -> list:
         return []
 
     FRED_SRC = "https://fred.stlouisfed.org/series/{}"
+    # Only include a series if FRED updated it within this many hours. Daily series
+    # (HY OAS, mortgage, GDPNow) pass every business day; monthly series (UNRATE,
+    # PAYEMS, CPI, PCE) pass only on their release day. "New data only" = the point.
+    MAX_AGE_HOURS = 36
+
+    def is_fresh(series_id):
+        r = requests.get(
+            "https://api.stlouisfed.org/fred/series",
+            params={"series_id": series_id, "api_key": api_key, "file_type": "json"},
+            timeout=15,
+        )
+        r.raise_for_status()
+        ts = r.json()["seriess"][0]["last_updated"]  # e.g. "2026-07-15 07:31:03-05"
+        naive = datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S")
+        offset_h = int(ts[-3:]) if len(ts) >= 22 and ts[-3:].lstrip("-+").isdigit() else 0
+        dt = naive.replace(tzinfo=timezone(timedelta(hours=offset_h)))
+        age = datetime.now(timezone.utc) - dt
+        return age <= timedelta(hours=MAX_AGE_HOURS)
 
     def obs(series_id, limit=1):
         url = "https://api.stlouisfed.org/fred/series/observations"
@@ -490,6 +511,12 @@ def fetch_indicators() -> list:
                 continue
         return out  # newest first
 
+    def fresh_obs(series_id, limit=1):
+        """obs() gated on freshness. Returns [] silently if the series is stale."""
+        if not is_fresh(series_id):
+            return []
+        return obs(series_id, limit)
+
     lines = []
 
     def try_add(fn, label):
@@ -498,44 +525,45 @@ def fetch_indicators() -> list:
         except Exception as e:
             print(f"  Warning: {label} fetch failed: {e}")
 
-    # Labor
-    try_add(lambda: lines.append(
-        ("Unemployment rate (U-3)", f"{obs('UNRATE')[0][1]:.1f}%", obs('UNRATE')[0][0], FRED_SRC.format("UNRATE"))
-    ), "UNRATE")
+    def _simple(series_id, label, fmt):
+        rows = fresh_obs(series_id)
+        if not rows:
+            return
+        lines.append((label, fmt.format(rows[0][1]), rows[0][0], FRED_SRC.format(series_id)))
 
-    try_add(lambda: lines.append(
-        ("U-6 underemployment", f"{obs('U6RATE')[0][1]:.1f}%", obs('U6RATE')[0][0], FRED_SRC.format("U6RATE"))
-    ), "U6RATE")
+    # Labor
+    try_add(lambda: _simple("UNRATE", "Unemployment rate (U-3)", "{:.1f}%"), "UNRATE")
+    try_add(lambda: _simple("U6RATE", "U-6 underemployment", "{:.1f}%"), "U6RATE")
 
     def _payems():
-        rows = obs("PAYEMS", limit=4)  # newest first: m, m-1, m-2, m-3
+        rows = fresh_obs("PAYEMS", limit=4)  # newest first
         if len(rows) < 4:
             return
         m0, m1, m2, m3 = rows
-        chg0 = (m0[1] - m1[1])  # in thousands (PAYEMS is already thousands)
-        chg1 = (m1[1] - m2[1])
-        chg2 = (m2[1] - m3[1])
-        val = (f"latest {chg0:+,.0f}k ({m0[0][:7]}); "
-               f"prior {chg1:+,.0f}k ({m1[0][:7]}); "
-               f"prior-prior {chg2:+,.0f}k ({m2[0][:7]})")
+        val = (f"latest {(m0[1]-m1[1]):+,.0f}k ({m0[0][:7]}); "
+               f"prior {(m1[1]-m2[1]):+,.0f}k ({m1[0][:7]}); "
+               f"prior-prior {(m2[1]-m3[1]):+,.0f}k ({m2[0][:7]})")
         lines.append(("Nonfarm payrolls MoM", val, m0[0], FRED_SRC.format("PAYEMS")))
     try_add(_payems, "PAYEMS")
 
     def _ahe():
-        rows = obs("CES0500000003", limit=13)
+        rows = fresh_obs("CES0500000003", limit=13)
         if len(rows) < 13:
             return
         yoy = (rows[0][1] / rows[12][1] - 1) * 100
         lines.append(("Avg hourly earnings YoY", f"{yoy:+.1f}%", rows[0][0], FRED_SRC.format("CES0500000003")))
     try_add(_ahe, "AHE YoY")
 
-    try_add(lambda: lines.append(
-        ("Initial jobless claims", f"{obs('ICSA')[0][1]/1000:.0f}k", obs('ICSA')[0][0], FRED_SRC.format("ICSA"))
-    ), "ICSA")
+    def _icsa():
+        rows = fresh_obs("ICSA")
+        if not rows:
+            return
+        lines.append(("Initial jobless claims", f"{rows[0][1]/1000:.0f}k", rows[0][0], FRED_SRC.format("ICSA")))
+    try_add(_icsa, "ICSA")
 
     # Inflation — MoM & YoY for each
     def _infl(series_id, label):
-        rows = obs(series_id, limit=13)
+        rows = fresh_obs(series_id, limit=13)
         if len(rows) < 13:
             return
         mom = (rows[0][1] / rows[1][1] - 1) * 100
@@ -546,17 +574,11 @@ def fetch_indicators() -> list:
     try_add(lambda: _infl("PCEPILFE", "Core PCE"), "core PCE")
 
     # Growth
-    try_add(lambda: lines.append(
-        ("GDPNow (Atlanta Fed)", f"{obs('GDPNOW')[0][1]:+.1f}%", obs('GDPNOW')[0][0], FRED_SRC.format("GDPNOW"))
-    ), "GDPNOW")
+    try_add(lambda: _simple("GDPNOW", "GDPNow (Atlanta Fed)", "{:+.1f}%"), "GDPNOW")
 
     # Credit / housing
-    try_add(lambda: lines.append(
-        ("ICE BofA US HY OAS", f"{obs('BAMLH0A0HYM2')[0][1]:.2f}%", obs('BAMLH0A0HYM2')[0][0], FRED_SRC.format("BAMLH0A0HYM2"))
-    ), "HY OAS")
-    try_add(lambda: lines.append(
-        ("30-yr fixed mortgage", f"{obs('MORTGAGE30US')[0][1]:.2f}%", obs('MORTGAGE30US')[0][0], FRED_SRC.format("MORTGAGE30US"))
-    ), "MORTGAGE30US")
+    try_add(lambda: _simple("BAMLH0A0HYM2", "ICE BofA US HY OAS", "{:.2f}%"), "HY OAS")
+    try_add(lambda: _simple("MORTGAGE30US", "30-yr fixed mortgage", "{:.2f}%"), "MORTGAGE30US")
 
     return lines
 
