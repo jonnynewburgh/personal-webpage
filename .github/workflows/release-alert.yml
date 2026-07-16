@@ -1,0 +1,42 @@
+name: Release Alert
+
+# Fires at 8:35 AM ET every day. The script exits silently if FRED shows
+# no fresh releases in the last 36h, so most days no email is sent.
+#
+#   EDT (UTC-4), Apr-Oct:   12:35 UTC = 8:35 AM
+#   EST (UTC-5), Nov-Mar:   13:35 UTC = 8:35 AM
+#
+# Both fire daily; briefing.py's check_atlanta_time is bypassed in release_alert
+# mode, but only the correct-DST run will find fresh 8:30 releases anyway.
+on:
+  schedule:
+    - cron: '35 12 * * *'   # 12:35 UTC = 8:35 AM EDT
+    - cron: '35 13 * * *'   # 13:35 UTC = 8:35 AM EST
+  workflow_dispatch:
+
+jobs:
+  send-alert:
+    name: Send data-release alert
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run release alert
+        env:
+          BRIEFING_MODE:      release_alert
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          FRED_API_KEY:       ${{ secrets.FRED_API_KEY }}
+          GMAIL_ADDRESS:      ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT:          ${{ secrets.RECIPIENT }}
+        run: python briefing.py

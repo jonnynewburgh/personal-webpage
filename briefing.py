@@ -846,10 +846,74 @@ def check_atlanta_time() -> bool:
     return 6 <= hour < 9
 
 
+def run_release_alert() -> None:
+    """Short 'data release' briefing — fires only when FRED has fresh releases.
+
+    Fetches indicators; exits silently (no email) if none are fresh. Otherwise
+    asks Groq for a focused ECONOMY + RATES email — no weather/sports/culture.
+    """
+    print("Release-alert mode — checking for fresh FRED releases...")
+    indicators = fetch_indicators()
+    if not indicators:
+        print("No fresh economic releases — skipping email.")
+        return
+
+    ind_block = ""
+    for label, val, as_of, url in indicators:
+        ind_block += f"- {label}: {val} (as of {as_of}) — source: {url}\n"
+
+    system = (
+        "You write a short 'data release' alert email in Axios Smart Brevity style. "
+        "Plain text, no markdown headers. Lead with one punchy takeaway line summarizing "
+        "what just printed. Then a tight bullet per fresh indicator using the EXACT figures "
+        "and source URLs from the AUTHORITATIVE INDICATORS block below. Cite inline as "
+        "markdown links (e.g. [FRED](https://...)). No editorializing, no forecasting. "
+        "Group by Labor / Inflation / Growth / Credit sub-labels when more than one item "
+        "in a group. Keep the whole email under 200 words."
+    )
+    user = f"Fresh FRED releases as of now:\n\n{ind_block}\n\nWrite the alert."
+
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        raise RuntimeError("GROQ_API_KEY not set")
+    client = Groq(api_key=groq_api_key)
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile", max_tokens=1200,
+        messages=[{"role": "system", "content": system},
+                  {"role": "user", "content": user}],
+    )
+    body = resp.choices[0].message.content.strip()
+    if not body:
+        raise RuntimeError("Groq returned empty release alert")
+
+    # Reuse send_email but override the subject
+    gmail_address = os.environ.get("GMAIL_ADDRESS", "").strip()
+    app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+    recipient = os.environ.get("RECIPIENT", "").strip() or gmail_address
+    date_str = datetime.now(pytz.timezone("America/New_York")).strftime("%A, %B %-d, %Y")
+    email = EmailMessage()
+    email["Subject"] = f"Data Release — {date_str}"
+    email["From"] = gmail_address
+    email["To"] = recipient
+    email.set_content(body)
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(gmail_address, app_password)
+        server.send_message(email)
+    print(f"Release alert sent to {recipient}.")
+
+
 def main():
     atlanta_tz = pytz.timezone("America/New_York")
     now = datetime.now(atlanta_tz)
     print(f"Atlanta time: {now.strftime('%H:%M %Z')}")
+
+    if os.environ.get("BRIEFING_MODE") == "release_alert":
+        try:
+            run_release_alert()
+        except Exception as exc:
+            print(f"ERROR in release alert: {exc}", file=sys.stderr)
+            sys.exit(1)
+        return
 
     # Skip the time-gate for manual runs triggered via the GitHub Actions UI.
     manual_run = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
