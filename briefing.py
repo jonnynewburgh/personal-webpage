@@ -100,6 +100,18 @@ explains an item's objective significance, never personal relevance.)
    credit" or general finance stories. If there's nothing genuinely on-topic and current,
    omit this section entirely (do not write a "no announcements" line).
 
+3b. **Economy & Credit** — Use the "AUTHORITATIVE INDICATORS" block for the exact figures
+   and source URLs. Cover, when data is present:
+     - Labor: unemployment rate (U-3), U-6 underemployment, latest nonfarm payroll change and
+       the two prior months (call out any revision to the prior print if the news results
+       mention one), avg hourly earnings YoY, weekly initial jobless claims.
+     - Inflation: latest headline & core CPI (MoM and YoY), core PCE (MoM and YoY).
+     - Growth: Atlanta Fed GDPNow nowcast.
+     - Credit/housing: ICE BofA US HY OAS, 30-year mortgage rate.
+   One tight line per metric. If a metric isn't in the block, omit it silently. Group with
+   short sub-labels ("Labor:", "Inflation:", "Growth:", "Credit:") so the section stays
+   scannable. Data only — no editorializing.
+
 4. **Politics** — 4-5 items total, drawn from U.S. national, Canadian federal/Ontario/Quebec, and
    Atlanta/Georgia local news. Prioritize actual policy substance — legislation, regulation,
    court rulings, budget/appropriations, agency actions — over horse-race, campaign, or
@@ -141,7 +153,7 @@ explains an item's objective significance, never personal relevance.)
 
 ## Ordering & headers
 - Use short emoji section headers to make it scannable.
-  Examples: 🌤️ WEATHER · 📊 RATES · 🏛️ POLICY · 🗳️ POLITICS · ⚾ SPORTS
+  Examples: 🌤️ WEATHER · 📊 RATES · 🏛️ POLICY · 📈 ECONOMY · 🗳️ POLITICS · ⚾ SPORTS
             🍳 FOOD · 🎵 CULTURE · ✡️ CALENDAR
 - Weather always leads. Follow the Required Every Day order above; rotate the optional
   sections after Sports, and not every optional section appears every day.
@@ -161,6 +173,8 @@ Search the web to get current data, then write today's briefing. Specifically lo
 
 - Current SOFR rate and Treasury yields at the 3-month, 2-year, 7-year, and 10-year tenors
 - Any Fed statements, FOMC news, or rate move commentary from the past 24 hours
+- Any BLS jobs report or CPI/PCE inflation release from the past 48 hours, including any
+  revisions to prior-month nonfarm payrolls
 - Any CDFI Fund announcements, Federal Register CDFI/NMTC notices, or Congressional activity
   affecting community development finance from the past 48 hours
 - Atlanta weather forecast for today
@@ -430,6 +444,123 @@ def build_rate_trend_chart(rates: list, rate_changes: dict) -> bytes:
     return buf.getvalue()
 
 
+def fetch_indicators() -> list:
+    """Fetch macro indicators from FRED. Returns a list of formatted display lines.
+
+    Requires FRED_API_KEY. Fails soft — a missing key or any per-series error just
+    omits those lines. Groq gets a pre-formatted "AUTHORITATIVE INDICATORS" block
+    so it doesn't invent numbers.
+
+    Series pulled:
+      UNRATE       Unemployment rate (U-3), %
+      U6RATE       U-6 underemployment, %
+      PAYEMS       Nonfarm payrolls, thousands (last 3 obs → MoM changes)
+      CES0500000003  Avg hourly earnings, all private, level (last 13 obs → YoY %)
+      ICSA         Initial jobless claims, thousands (weekly, latest)
+      CPIAUCSL     Headline CPI (last 13 → MoM & YoY)
+      CPILFESL     Core CPI (last 13 → MoM & YoY)
+      PCEPILFE     Core PCE (last 13 → MoM & YoY)
+      GDPNOW       Atlanta Fed GDPNow, %
+      BAMLH0A0HYM2 ICE BofA US HY OAS, %
+      MORTGAGE30US 30-yr fixed mortgage rate, %
+    """
+    api_key = os.environ.get("FRED_API_KEY", "").strip()
+    if not api_key:
+        print("  FRED_API_KEY not set — skipping macro indicators.")
+        return []
+
+    FRED_SRC = "https://fred.stlouisfed.org/series/{}"
+
+    def obs(series_id, limit=1):
+        url = "https://api.stlouisfed.org/fred/series/observations"
+        r = requests.get(url, params={
+            "series_id": series_id, "api_key": api_key, "file_type": "json",
+            "sort_order": "desc", "limit": limit,
+        }, timeout=15)
+        r.raise_for_status()
+        rows = r.json().get("observations", [])
+        out = []
+        for row in rows:
+            v = row.get("value")
+            if v in (None, ".", ""):
+                continue
+            try:
+                out.append((row["date"], float(v)))
+            except ValueError:
+                continue
+        return out  # newest first
+
+    lines = []
+
+    def try_add(fn, label):
+        try:
+            fn()
+        except Exception as e:
+            print(f"  Warning: {label} fetch failed: {e}")
+
+    # Labor
+    try_add(lambda: lines.append(
+        ("Unemployment rate (U-3)", f"{obs('UNRATE')[0][1]:.1f}%", obs('UNRATE')[0][0], FRED_SRC.format("UNRATE"))
+    ), "UNRATE")
+
+    try_add(lambda: lines.append(
+        ("U-6 underemployment", f"{obs('U6RATE')[0][1]:.1f}%", obs('U6RATE')[0][0], FRED_SRC.format("U6RATE"))
+    ), "U6RATE")
+
+    def _payems():
+        rows = obs("PAYEMS", limit=4)  # newest first: m, m-1, m-2, m-3
+        if len(rows) < 4:
+            return
+        m0, m1, m2, m3 = rows
+        chg0 = (m0[1] - m1[1])  # in thousands (PAYEMS is already thousands)
+        chg1 = (m1[1] - m2[1])
+        chg2 = (m2[1] - m3[1])
+        val = (f"latest {chg0:+,.0f}k ({m0[0][:7]}); "
+               f"prior {chg1:+,.0f}k ({m1[0][:7]}); "
+               f"prior-prior {chg2:+,.0f}k ({m2[0][:7]})")
+        lines.append(("Nonfarm payrolls MoM", val, m0[0], FRED_SRC.format("PAYEMS")))
+    try_add(_payems, "PAYEMS")
+
+    def _ahe():
+        rows = obs("CES0500000003", limit=13)
+        if len(rows) < 13:
+            return
+        yoy = (rows[0][1] / rows[12][1] - 1) * 100
+        lines.append(("Avg hourly earnings YoY", f"{yoy:+.1f}%", rows[0][0], FRED_SRC.format("CES0500000003")))
+    try_add(_ahe, "AHE YoY")
+
+    try_add(lambda: lines.append(
+        ("Initial jobless claims", f"{obs('ICSA')[0][1]/1000:.0f}k", obs('ICSA')[0][0], FRED_SRC.format("ICSA"))
+    ), "ICSA")
+
+    # Inflation — MoM & YoY for each
+    def _infl(series_id, label):
+        rows = obs(series_id, limit=13)
+        if len(rows) < 13:
+            return
+        mom = (rows[0][1] / rows[1][1] - 1) * 100
+        yoy = (rows[0][1] / rows[12][1] - 1) * 100
+        lines.append((label, f"MoM {mom:+.2f}%, YoY {yoy:+.1f}%", rows[0][0], FRED_SRC.format(series_id)))
+    try_add(lambda: _infl("CPIAUCSL", "Headline CPI"), "CPI")
+    try_add(lambda: _infl("CPILFESL", "Core CPI"), "core CPI")
+    try_add(lambda: _infl("PCEPILFE", "Core PCE"), "core PCE")
+
+    # Growth
+    try_add(lambda: lines.append(
+        ("GDPNow (Atlanta Fed)", f"{obs('GDPNOW')[0][1]:+.1f}%", obs('GDPNOW')[0][0], FRED_SRC.format("GDPNOW"))
+    ), "GDPNOW")
+
+    # Credit / housing
+    try_add(lambda: lines.append(
+        ("ICE BofA US HY OAS", f"{obs('BAMLH0A0HYM2')[0][1]:.2f}%", obs('BAMLH0A0HYM2')[0][0], FRED_SRC.format("BAMLH0A0HYM2"))
+    ), "HY OAS")
+    try_add(lambda: lines.append(
+        ("30-yr fixed mortgage", f"{obs('MORTGAGE30US')[0][1]:.2f}%", obs('MORTGAGE30US')[0][0], FRED_SRC.format("MORTGAGE30US"))
+    ), "MORTGAGE30US")
+
+    return lines
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -450,6 +581,9 @@ def generate_briefing() -> str:
     # Treasury curve come from structured APIs (fetch_rates), not web search.
     search_queries = [
         {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 1},
+        {"q": "BLS employment situation nonfarm payrolls report revision", "days": 3},
+        {"q": "CPI inflation report release BLS", "days": 3},
+        {"q": "PCE inflation report release BEA", "days": 3},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
         {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
@@ -522,6 +656,16 @@ def generate_briefing() -> str:
             rates_block += f"- {label}: {val}% (as of {as_of}) — source: {url}\n"
         context = rates_block + "\n" + context
     # Trend data is no longer surfaced as text — send_email() attaches a chart instead.
+
+    indicators = fetch_indicators()
+    if indicators:
+        ind_block = (
+            "=== AUTHORITATIVE INDICATORS — use these EXACT figures and source URLs for the "
+            "Economy & Credit section; do NOT substitute web-search numbers ===\n"
+        )
+        for label, val, as_of, url in indicators:
+            ind_block += f"- {label}: {val} (as of {as_of}) — source: {url}\n"
+        context = ind_block + "\n" + context
 
     # Step 3: Build enriched prompt
     enriched_prompt = f"{user_prompt}\n\n{context}"
