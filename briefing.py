@@ -849,7 +849,8 @@ def run_release_alert() -> None:
     """Short 'data release' briefing — fires only when FRED has fresh releases.
 
     Fetches indicators; exits silently (no email) if none are fresh. Otherwise
-    asks Groq for a focused ECONOMY + RATES email — no weather/sports/culture.
+    generates a Smart-Brevity-styled email in the same visual DNA as the main
+    briefing, focused on 📈 ECONOMY + 📊 RATES only (no weather/sports/culture).
     """
     print("Release-alert mode — checking for fresh FRED releases...")
     indicators = fetch_indicators()
@@ -857,33 +858,64 @@ def run_release_alert() -> None:
         print("No fresh economic releases — skipping email.")
         return
 
-    ind_block = ""
+    ind_block = "=== AUTHORITATIVE INDICATORS — use these EXACT figures and source URLs ===\n"
     for label, val, as_of, url in indicators:
         ind_block += f"- {label}: {val} (as of {as_of}) — source: {url}\n"
 
-    system = (
-        "You write a short 'data release' alert email in Axios Smart Brevity style. "
-        "Plain text, no markdown headers. Lead with one punchy takeaway line summarizing "
-        "what just printed. Then a tight bullet per fresh indicator using the EXACT figures "
-        "and source URLs from the AUTHORITATIVE INDICATORS block below. Cite inline as "
-        "markdown links (e.g. [FRED](https://...)). No editorializing, no forecasting. "
-        "Group by Labor / Inflation / Growth / Credit sub-labels when more than one item "
-        "in a group. Keep the whole email under 200 words."
+    # Optional rates snapshot for pairing with the release. Failure-tolerant — if
+    # the rates fetch fails, the email still ships with just the economy block.
+    rates = fetch_rates()
+    rates_block = ""
+    if rates:
+        rates_block = "\n=== AUTHORITATIVE RATES — use these EXACT figures and source URLs ===\n"
+        for label, val, as_of, url in rates:
+            rates_block += f"- {label}: {val}% (as of {as_of}) — source: {url}\n"
+
+    system = """You are the author of a short 'data release' alert email — same voice, same
+Smart Brevity style, same look as Jonny's daily morning briefing. Plain text (no ** or ##
+markdown headers) with emoji section headers.
+
+## Style
+- Open with ONE punchy takeaway line summarizing what just printed — the story, not a
+  restatement of the numbers. E.g. "Hotter-than-expected core CPI keeps the Fed's cut path
+  in doubt."
+- Then emoji-headed sections. Use these headers, in this order:
+    📈 ECONOMY   — every fresh indicator from the AUTHORITATIVE INDICATORS block, one tight
+                    "- " bullet per metric. Group with short sub-labels ("Labor:",
+                    "Inflation:", "Growth:", "Credit:") when more than one item in a group.
+    📊 RATES     — the current SOFR + Treasury tenors from the AUTHORITATIVE RATES block, as
+                    a single bullet line ("SOFR 4.32%, 3M 4.38%, 2Y 3.95%, 7Y 4.15%, 10Y 4.28%"
+                    style), one inline citation. Include this section ONLY if the rates
+                    block is present.
+- Cite EACH fact inline as a markdown link using the source's short name as the link text
+  (e.g. "[FRED](https://fred.stlouisfed.org/series/UNRATE)"), never the raw URL.
+- Use the EXACT figures and source URLs from the blocks below. Do not invent numbers.
+- No editorializing beyond the opener. No forecasting. No hedging. No "it's worth noting".
+- If a bullet has no real data, drop it silently. NEVER write "no data available",
+  "not applicable", or similar filler.
+- Keep the whole email under 250 words.
+"""
+    date_str = datetime.now(pytz.timezone("America/New_York")).strftime("%A, %B %-d, %Y")
+    user = (
+        f"Today is {date_str}. FRED just released the following. Write the alert.\n\n"
+        f"{ind_block}{rates_block}"
     )
-    user = f"Fresh FRED releases as of now:\n\n{ind_block}\n\nWrite the alert."
 
     groq_api_key = os.environ.get("GROQ_API_KEY")
     if not groq_api_key:
         raise RuntimeError("GROQ_API_KEY not set")
     client = Groq(api_key=groq_api_key)
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile", max_tokens=1200,
+        model="llama-3.3-70b-versatile", max_tokens=1500,
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user}],
     )
     body = resp.choices[0].message.content.strip()
     if not body:
         raise RuntimeError("Groq returned empty release alert")
+    body = strip_filler(body)
+    if not body:
+        raise RuntimeError("Release alert empty after stripping filler")
 
     # Reuse send_email but override the subject
     gmail_address = os.environ.get("GMAIL_ADDRESS", "").strip()
