@@ -603,9 +603,9 @@ def generate_briefing() -> str:
     # Treasury curve come from structured APIs (fetch_rates), not web search.
     search_queries = [
         {"q": "Federal Reserve FOMC interest rate decision or statement", "days": 1},
-        {"q": "BLS employment situation nonfarm payrolls report revision", "days": 3},
-        {"q": "CPI inflation report release BLS", "days": 3},
-        {"q": "PCE inflation report release BEA", "days": 3},
+        {"q": "BLS employment situation nonfarm payrolls report revision", "days": 3, "cap": 200},
+        {"q": "CPI inflation report release BLS", "days": 3, "cap": 200},
+        {"q": "PCE inflation report release BEA", "days": 3, "cap": 200},
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
         {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
