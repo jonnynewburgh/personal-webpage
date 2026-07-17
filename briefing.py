@@ -644,7 +644,7 @@ def generate_briefing() -> str:
                 search_results.append({
                     "query": query,
                     "results": data["results"][:spec.get("keep", 3)],  # TPM-bounded
-                    "cap": spec.get("cap", 400),      # snippet char cap for this query
+                    "cap": spec.get("cap", 300),      # snippet char cap for this query
                 })
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
@@ -655,7 +655,7 @@ def generate_briefing() -> str:
     context = "=== WEB SEARCH RESULTS ===\n"
     for item in search_results:
         context += f"\nQuery: {item['query']}\n"
-        cap = item.get("cap", 400)
+        cap = item.get("cap", 300)
         for i, result in enumerate(item["results"], 1):
             published = result.get("published_date") or "no date given"
             # Cap each snippet so extra queries don't blow the Groq free-tier TPM limit.
