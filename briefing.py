@@ -834,15 +834,70 @@ def check_atlanta_time() -> bool:
     """Return True only if Atlanta's clock is currently between 6:00–9:00 AM.
 
     The workflow fires at both 10:30 UTC and 11:30 UTC every day to cover
-    EDT and EST. This check ensures exactly one of those runs actually sends
-    the briefing, regardless of DST transitions. Widened from a 1-hour to a
-    3-hour window because GitHub's scheduled-cron queue routinely delays
-    "schedule"-triggered runs by 2-4+ hours, which was causing every run to
-    land outside a narrower window and silently skip for weeks.
+    EDT and EST. Both scheduled times land inside this same 3-hour window,
+    so this check alone no longer guarantees only one run sends — see
+    already_sent_today() for the actual de-dup guard. The window stays wide
+    because GitHub's scheduled-cron queue routinely delays "schedule"-triggered
+    runs by 2-4+ hours, which was causing every run to land outside a
+    narrower window and silently skip for weeks.
     """
     atlanta_tz = pytz.timezone("America/New_York")
     hour = datetime.now(atlanta_tz).hour
     return 6 <= hour < 9
+
+
+LAST_SENT_MARKER = os.path.join(os.path.dirname(__file__), "state", "last_briefing_sent.txt")
+
+
+def already_sent_today() -> bool:
+    """True if the marker file already records today's Atlanta date.
+
+    This is the real duplicate-send guard: both daily cron triggers can land
+    inside check_atlanta_time()'s 6-9 AM window, so time-of-day alone can't
+    tell them apart. Whichever run sends first writes today's date to
+    LAST_SENT_MARKER (committed back to the repo by the workflow); any
+    later run today sees its own date already there and skips.
+    """
+    today = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d")
+    try:
+        with open(LAST_SENT_MARKER, "r", encoding="utf-8") as f:
+            return f.read().strip() == today
+    except FileNotFoundError:
+        return False
+
+
+def mark_sent_today() -> None:
+    today = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d")
+    os.makedirs(os.path.dirname(LAST_SENT_MARKER), exist_ok=True)
+    with open(LAST_SENT_MARKER, "w", encoding="utf-8") as f:
+        f.write(today)
+
+
+LAST_RELEASE_ALERT_MARKER = os.path.join(
+    os.path.dirname(__file__), "state", "last_release_alert_sent.txt"
+)
+
+
+def already_sent_release_alert_today() -> bool:
+    """Same guard as already_sent_today(), for the release-alert workflow.
+
+    Its two daily cron triggers (12:35/13:35 UTC) are only an hour apart, well
+    inside FRED's 36h freshness window, so without this both runs would see
+    the same fresh release and both send.
+    """
+    today = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d")
+    try:
+        with open(LAST_RELEASE_ALERT_MARKER, "r", encoding="utf-8") as f:
+            return f.read().strip() == today
+    except FileNotFoundError:
+        return False
+
+
+def mark_release_alert_sent_today() -> None:
+    today = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d")
+    os.makedirs(os.path.dirname(LAST_RELEASE_ALERT_MARKER), exist_ok=True)
+    with open(LAST_RELEASE_ALERT_MARKER, "w", encoding="utf-8") as f:
+        f.write(today)
 
 
 def run_release_alert() -> None:
@@ -853,6 +908,11 @@ def run_release_alert() -> None:
     briefing, focused on 📈 ECONOMY + 📊 RATES only (no weather/sports/culture).
     """
     print("Release-alert mode — checking for fresh FRED releases...")
+
+    if already_sent_release_alert_today():
+        print("Release alert already sent today — skipping duplicate cron run.")
+        return
+
     indicators = fetch_indicators()
     if not indicators:
         print("No fresh economic releases — skipping email.")
@@ -931,6 +991,7 @@ markdown headers) with emoji section headers.
         server.login(gmail_address, app_password)
         server.send_message(email)
     print(f"Release alert sent to {recipient}.")
+    mark_release_alert_sent_today()
 
 
 def main():
@@ -949,7 +1010,11 @@ def main():
     # Skip the time-gate for manual runs triggered via the GitHub Actions UI.
     manual_run = os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
     if not manual_run and not check_atlanta_time():
-        print("Outside the 6–7 AM window — skipping. (The other cron will handle it.)")
+        print("Outside the 6–9 AM window — skipping. (The other cron will handle it.)")
+        sys.exit(0)
+
+    if not manual_run and already_sent_today():
+        print("Briefing already sent today — skipping duplicate cron run.")
         sys.exit(0)
 
     print("Generating morning briefing...")
@@ -969,6 +1034,9 @@ def main():
     except Exception as exc:
         print(f"ERROR sending email: {exc}", file=sys.stderr)
         sys.exit(1)
+
+    if not manual_run:
+        mark_sent_today()
 
     print("Done.")
 
