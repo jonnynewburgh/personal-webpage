@@ -785,10 +785,13 @@ def generate_briefing() -> str:
     if not briefing:
         raise RuntimeError("Briefing was empty after stripping filler")
 
-    # Mondays: append the week's new NBER working papers. Deterministic — appended
+    # Tuesdays: append the week's new NBER working papers. Deterministic — appended
     # after the model runs so titles and links are verbatim, never summarized.
-    if now.weekday() == 0:
-        print("  Monday — fetching new NBER working papers...")
+    # Tuesday, not Monday: NBER posts the batch "Monday morning" without committing
+    # to a time, and its `newthisweek` flag persists all week — so a 6:30 AM ET
+    # Monday send that beat the batch would quietly repeat LAST week's papers.
+    if now.weekday() == 1:
+        print("  Tuesday — fetching new NBER working papers...")
         nber = render_nber_section(fetch_nber_new_papers())
         if nber:
             briefing = briefing + "\n\n" + nber
