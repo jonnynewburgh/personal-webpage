@@ -583,6 +583,70 @@ def fetch_indicators() -> list:
     return lines
 
 
+_NBER_API = ("https://www.nber.org/api/v1/working_page_listing/"
+             "contentType/working_paper/_/_/search")
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def fetch_nber_new_papers() -> list:
+    """Fetch this week's new NBER working papers. Returns [(title, url, authors), ...].
+
+    NBER releases a batch of working papers every Monday and flags them with a
+    `newthisweek` field in its listing API. We take exactly those, newest first.
+
+    Fails soft — any error returns [] and the section is simply omitted.
+    """
+    import html as _html
+
+    def _clean(s):
+        return _html.unescape(_TAG_RE.sub("", s or "")).strip()
+
+    papers, page, PER_PAGE = [], 1, 60
+    try:
+        # Paginate only while every row on the page is still flagged new — the
+        # weekly batch is ~30, so this normally makes exactly one request.
+        while page <= 5:
+            r = requests.get(_NBER_API, params={
+                "page": page, "perPage": PER_PAGE,
+                "sortBy": "public_date", "sortOrder": "desc",
+            }, timeout=20)
+            r.raise_for_status()
+            rows = r.json().get("results", [])
+            if not rows:
+                break
+            fresh = [x for x in rows if x.get("newthisweek")]
+            for x in fresh:
+                url = x.get("url") or ""
+                title = _clean(x.get("title"))
+                if not url or not title:
+                    continue
+                authors = ", ".join(_clean(a) for a in (x.get("authors") or []))
+                papers.append((title, "https://www.nber.org" + url, authors))
+            if len(fresh) < len(rows):
+                break  # hit the first non-new paper — batch is complete
+            page += 1
+    except Exception as e:
+        print(f"  Warning: NBER working-paper fetch failed: {e}")
+        return []
+
+    return papers
+
+
+def render_nber_section(papers: list) -> str:
+    """Render the NBER papers as a plain-text briefing section with markdown links.
+
+    Built deterministically rather than via the model: the whole point is a
+    complete, verbatim list of titles and URLs, which a summarizing model would
+    truncate or paraphrase.
+    """
+    if not papers:
+        return ""
+    head = f"📄 NBER WORKING PAPERS ({len(papers)} new this week)"
+    lines = [f"- [{title}]({url})" + (f" — {authors}" if authors else "")
+             for title, url, authors in papers]
+    return "\n".join([head] + lines)
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -720,6 +784,14 @@ def generate_briefing() -> str:
 
     if not briefing:
         raise RuntimeError("Briefing was empty after stripping filler")
+
+    # Mondays: append the week's new NBER working papers. Deterministic — appended
+    # after the model runs so titles and links are verbatim, never summarized.
+    if now.weekday() == 0:
+        print("  Monday — fetching new NBER working papers...")
+        nber = render_nber_section(fetch_nber_new_papers())
+        if nber:
+            briefing = briefing + "\n\n" + nber
 
     return briefing
 
