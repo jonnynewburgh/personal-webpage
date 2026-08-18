@@ -647,6 +647,11 @@ def render_nber_section(papers: list) -> str:
     return "\n".join([head] + lines)
 
 
+# Char budget for the search-context block (see generate_briefing).
+MAX_CONTEXT_CHARS = 10000
+TRUNCATION_NOTE = '\n[context truncated to fit token budget]\n'
+
+
 def generate_briefing() -> str:
     """Call Groq with Tavily web search to generate today's briefing."""
 
@@ -672,9 +677,9 @@ def generate_briefing() -> str:
         {"q": "CDFI Fund New Markets Tax Credit NMTC announcement or Federal Register notice", "days": 21},
         {"q": "Atlanta weather forecast today"},
         {"q": "Braves Blue Jays Atlanta United score result last night", "days": 2},
-        {"q": "US federal policy legislation regulation court ruling news", "days": 1, "keep": 4},
-        {"q": "Canada federal Ontario Quebec policy legislation news", "days": 1, "keep": 4},
-        {"q": "Atlanta Georgia state policy legislation news", "days": 1, "keep": 4},
+        {"q": "US federal policy legislation regulation court ruling news", "days": 1},
+        {"q": "Canada federal Ontario Quebec policy legislation news", "days": 1},
+        {"q": "Atlanta Georgia state policy legislation news", "days": 1},
         {"q": "Atlanta restaurant opening closing dining news", "days": 21},
         {"q": "new music album release and new TV streaming show", "days": 14},
     ]
@@ -708,7 +713,7 @@ def generate_briefing() -> str:
                 search_results.append({
                     "query": query,
                     "results": data["results"][:spec.get("keep", 3)],  # TPM-bounded
-                    "cap": spec.get("cap", 300),      # snippet char cap for this query
+                    "cap": spec.get("cap", 200),      # snippet char cap for this query
                 })
         except Exception as e:
             print(f"  Warning: search failed for '{query}': {e}")
@@ -719,7 +724,7 @@ def generate_briefing() -> str:
     context = "=== WEB SEARCH RESULTS ===\n"
     for item in search_results:
         context += f"\nQuery: {item['query']}\n"
-        cap = item.get("cap", 300)
+        cap = item.get("cap", 200)
         for i, result in enumerate(item["results"], 1):
             published = result.get("published_date") or "no date given"
             # Cap each snippet so extra queries don't blow the Groq free-tier TPM limit.
@@ -752,7 +757,21 @@ def generate_briefing() -> str:
             ind_block += f"- {label}: {val} (as of {as_of}) — source: {url}\n"
         context = ind_block + "\n" + context
 
-    # Step 3: Build enriched prompt
+    # Step 3: Build enriched prompt.
+    #
+    # Groq's free tier caps us at 8000 TPM, and that budget counts the prompt
+    # PLUS the max_tokens reserved for the response. The system + user prompts
+    # are fixed (~2.9K tokens) and max_tokens reserves 1500, so the search
+    # context gets whatever is left. Tavily snippet lengths vary day to day, so
+    # this hard character budget is what actually keeps us under the ceiling --
+    # the per-query caps above only shape what gets in first.
+    #
+    # The authoritative rates/indicator blocks are prepended to context, so
+    # truncating the tail drops the least-important search snippets and never
+    # the exact figures the briefing must cite.
+    if len(context) > MAX_CONTEXT_CHARS:
+        context = context[:MAX_CONTEXT_CHARS] + TRUNCATION_NOTE
+
     enriched_prompt = f"{user_prompt}\n\n{context}"
 
     # Step 4: Call Groq API
@@ -764,8 +783,9 @@ def generate_briefing() -> str:
     client = Groq(api_key=groq_api_key)
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        max_tokens=3500,
+        model="openai/gpt-oss-120b",
+        max_tokens=1500,
+        reasoning_effort="low",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": enriched_prompt},
@@ -1041,7 +1061,8 @@ markdown headers) with emoji section headers.
         raise RuntimeError("GROQ_API_KEY not set")
     client = Groq(api_key=groq_api_key)
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile", max_tokens=1500,
+        model="openai/gpt-oss-120b", max_tokens=1500,
+        reasoning_effort="low",
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user}],
     )
